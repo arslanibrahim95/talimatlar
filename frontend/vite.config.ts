@@ -8,24 +8,26 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@components': path.resolve(__dirname, './src/components'),
-      '@pages': path.resolve(__dirname, './src/pages'),
-      '@hooks': path.resolve(__dirname, './src/hooks'),
-      '@utils': path.resolve(__dirname, './src/utils'),
-      '@services': path.resolve(__dirname, './src/services'),
-      '@stores': path.resolve(__dirname, './src/stores'),
-      '@types': path.resolve(__dirname, './src/types'),
-      '@assets': path.resolve(__dirname, './src/assets'),
     },
   },
   server: {
     port: 3000,
-    host: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
+      '/api/auth': {
+        target: 'http://localhost:8000',
         changeOrigin: true,
-        secure: false,
+      },
+      '/api/documents': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+      },
+      '/api/analytics': {
+        target: 'http://localhost:8002',
+        changeOrigin: true,
+      },
+      '/api/notifications': {
+        target: 'http://localhost:8003',
+        changeOrigin: true,
       },
     },
   },
@@ -37,9 +39,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
-          ui: ['@headlessui/react', '@radix-ui/react-dialog'],
-          charts: ['recharts'],
-          utils: ['date-fns', 'clsx', 'tailwind-merge'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
         },
       },
     },

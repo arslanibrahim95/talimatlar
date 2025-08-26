@@ -55,30 +55,3 @@ function applyTheme(theme: Theme) {
     root.classList.add(theme)
   }
 }
-
-// Theme Provider Component
-interface ThemeProviderProps {
-  children: React.ReactNode
-}
-
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const { theme } = useTheme()
-
-  React.useEffect(() => {
-    // Apply theme on mount
-    applyTheme(theme)
-
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      if (theme === 'system') {
-        applyTheme('system')
-      }
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme])
-
-  return <>{children}</>
-}
