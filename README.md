@@ -174,7 +174,7 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 
 ## 📞 İletişim
 
-- **Email**: admin@claude-talimat.com
+- **Email**: ibrahim1995412@gmail.com
 - **GitHub Issues**: [Proje Issues](https://github.com/arslanibrahim95/talimatlar/issues)
 
 ---
