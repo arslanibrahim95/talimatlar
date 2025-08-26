@@ -1,0 +1,82 @@
+# =============================================================================
+# CLAUDE TALİMAT İŞ GÜVENLİĞİ YÖNETİM SİSTEMİ - SYSTEMD SERVICE
+# =============================================================================
+
+[Unit]
+Description=Claude Talimat İş Güvenliği Yönetim Sistemi
+Documentation=https://github.com/arslanibrahim95/talimatlar
+After=docker.service
+Requires=docker.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/path/to/your/project
+ExecStart=/usr/bin/docker-compose -f docker-compose.prod.yml up -d
+ExecStop=/usr/bin/docker-compose -f docker-compose.prod.yml down
+ExecReload=/usr/bin/docker-compose -f docker-compose.prod.yml restart
+TimeoutStartSec=300
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=10
+
+# Environment variables
+Environment=COMPOSE_PROJECT_NAME=claude-talimat
+Environment=COMPOSE_FILE=docker-compose.prod.yml
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/path/to/your/project/logs /path/to/your/project/backups
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# User and group
+User=your-username
+Group=your-username
+
+[Install]
+WantedBy=multi-user.target
+
+# =============================================================================
+# INSTALLATION INSTRUCTIONS
+# =============================================================================
+# 1. Copy this file to /etc/systemd/system/
+#    sudo cp infrastructure/scripts/claude-talimat.service /etc/systemd/system/
+#
+# 2. Update the paths in the service file:
+#    - WorkingDirectory: Set to your project directory
+#    - ReadWritePaths: Set to your project logs and backups directories
+#    - User/Group: Set to your username
+#
+# 3. Reload systemd:
+#    sudo systemctl daemon-reload
+#
+# 4. Enable the service:
+#    sudo systemctl enable claude-talimat.service
+#
+# 5. Start the service:
+#    sudo systemctl start claude-talimat.service
+#
+# 6. Check status:
+#    sudo systemctl status claude-talimat.service
+#
+# 7. View logs:
+#    sudo journalctl -u claude-talimat.service -f
+#
+# =============================================================================
+# USEFUL COMMANDS
+# =============================================================================
+# Start:     sudo systemctl start claude-talimat
+# Stop:      sudo systemctl stop claude-talimat
+# Restart:   sudo systemctl restart claude-talimat
+# Status:    sudo systemctl status claude-talimat
+# Logs:      sudo journalctl -u claude-talimat -f
+# Enable:    sudo systemctl enable claude-talimat
+# Disable:   sudo systemctl disable claude-talimat
