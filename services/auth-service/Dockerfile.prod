@@ -1,0 +1,45 @@
+# =============================================================================
+# CLAUDE TALİMAT İŞ GÜVENLİĞİ YÖNETİM SİSTEMİ - AUTH SERVICE PRODUCTION DOCKERFILE
+# =============================================================================
+
+FROM denoland/deno:1.35-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV DENO_DIR=/deno_dir
+ENV DENO_ENV=production
+
+# Create non-root user
+RUN addgroup -g 1001 -S deno && \
+    adduser -S deno -u 1001
+
+# Copy dependency files
+COPY deno.json deno.lock* ./
+
+# Cache dependencies
+RUN deno cache --reload deno.json
+
+# Copy source code
+COPY . .
+
+# Compile for production
+RUN deno compile --allow-net --allow-env --allow-read --allow-write --output=auth-service main.ts
+
+# Create necessary directories
+RUN mkdir -p /app/logs && \
+    chown -R deno:deno /app
+
+# Switch to non-root user
+USER deno
+
+# Expose port
+EXPOSE 8001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD deno run --allow-net --allow-env https://deno.land/std@0.208.0/http/health_check.ts http://localhost:8001/health || exit 1
+
+# Start the application
+CMD ["./auth-service"]

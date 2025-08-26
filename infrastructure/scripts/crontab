@@ -1,0 +1,36 @@
+# =============================================================================
+# CLAUDE TALİMAT İŞ GÜVENLİĞİ YÖNETİM SİSTEMİ - CRON JOBS
+# =============================================================================
+
+# Add this to your system crontab using: crontab -e
+# Or install using: crontab infrastructure/scripts/crontab
+
+# Daily backup at 2:00 AM
+0 2 * * * /path/to/your/project/infrastructure/scripts/cron-backup.sh >> /var/log/claude-backup.log 2>&1
+
+# System monitoring every 15 minutes
+*/15 * * * * /path/to/your/project/infrastructure/scripts/monitor.sh >> /var/log/claude-monitor.log 2>&1
+
+# Log rotation weekly (Sundays at 3:00 AM)
+0 3 * * 0 /usr/sbin/logrotate /path/to/your/project/infrastructure/scripts/logrotate.conf
+
+# Database maintenance weekly (Saturdays at 4:00 AM)
+0 4 * * 6 /path/to/your/project/infrastructure/scripts/db-maintenance.sh >> /var/log/claude-db-maintenance.log 2>&1
+
+# SSL certificate renewal check monthly (1st of month at 5:00 AM)
+0 5 1 * * /path/to/your/project/infrastructure/scripts/ssl-check.sh >> /var/log/claude-ssl.log 2>&1
+
+# System cleanup monthly (15th of month at 6:00 AM)
+0 6 15 * * /path/to/your/project/infrastructure/scripts/cleanup.sh >> /var/log/claude-cleanup.log 2>&1
+
+# Health check every 5 minutes during business hours (8 AM - 6 PM, Mon-Fri)
+*/5 8-18 * * 1-5 /path/to/your/project/infrastructure/scripts/health-check.sh >> /var/log/claude-health.log 2>&1
+
+# Performance metrics collection every hour
+0 * * * * /path/to/your/project/infrastructure/scripts/collect-metrics.sh >> /var/log/claude-metrics.log 2>&1
+
+# Security scan daily at 1:00 AM
+0 1 * * * /path/to/your/project/infrastructure/scripts/security-scan.sh >> /var/log/claude-security.log 2>&1
+
+# Update check weekly (Wednesdays at 7:00 AM)
+0 7 * * 3 /path/to/your/project/infrastructure/scripts/update-check.sh >> /var/log/claude-update.log 2>&1
