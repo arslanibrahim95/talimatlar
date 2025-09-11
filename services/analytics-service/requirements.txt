@@ -10,7 +10,7 @@ python-dotenv==1.0.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
 alembic==1.12.1
-pandas==2.1.4
+pandas==2.3.2
 numpy==1.25.2
 matplotlib==3.8.2
 seaborn==0.13.0
