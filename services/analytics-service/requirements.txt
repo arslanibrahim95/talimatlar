@@ -9,7 +9,7 @@ passlib[bcrypt]==1.7.4
 python-dotenv==1.0.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
-alembic==1.12.1
+alembic==1.16.5
 pandas==2.1.4
 numpy==1.25.2
 matplotlib==3.8.2
