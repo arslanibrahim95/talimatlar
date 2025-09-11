@@ -17,4 +17,4 @@ pypdf2==3.0.1
 python-magic==0.4.27
 aiofiles==23.2.1
 httpx==0.25.2
-structlog==23.2.0
+structlog==25.4.0
