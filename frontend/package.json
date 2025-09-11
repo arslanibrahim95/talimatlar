@@ -41,7 +41,7 @@
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
-    "@tanstack/react-query": "^5.8.4",
+    "@tanstack/react-query": "^5.87.4",
     "@tanstack/react-query-devtools": "^5.8.4",
     "axios": "^1.6.2",
     "class-variance-authority": "^0.7.0",
