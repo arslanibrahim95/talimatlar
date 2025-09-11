@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: 'claude-talimat-dashboards'
+    orgId: 1
+    folder: 'Claude Talimat'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

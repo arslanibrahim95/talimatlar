@@ -1,0 +1,240 @@
+version: '3.8'
+
+services:
+  # Green Environment (New Production)
+  frontend-green:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "3002:3000"  # Different port for green
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=https://api.claude-talimat.com
+      - VITE_WS_URL=wss://api.claude-talimat.com
+    depends_on:
+      - nginx-green
+    networks:
+      - claude-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-green.rule=Host(`green.claude-talimat.com`)"
+      - "traefik.http.routers.frontend-green.tls=true"
+
+  nginx-green:
+    image: nginx:alpine
+    ports:
+      - "8082:80"  # Different port for green
+      - "8445:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.green.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - auth-service-green
+      - analytics-service-green
+      - instruction-service-green
+      - ai-service-green
+      - notification-service-green
+    networks:
+      - claude-network
+    restart: unless-stopped
+
+  auth-service-green:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8024:8004"  # Different port for green
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-green:5432/claude_prod
+      - REDIS_URL=redis://redis-green:6379
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - postgres-green
+      - redis-green
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  analytics-service-green:
+    build:
+      context: ./analytics-service
+      dockerfile: Dockerfile
+    ports:
+      - "8023:8003"  # Different port for green
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-green:5432/claude_prod
+      - REDIS_URL=redis://redis-green:6379
+    depends_on:
+      - postgres-green
+      - redis-green
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  instruction-service-green:
+    build:
+      context: ./instruction-service
+      dockerfile: Dockerfile
+    ports:
+      - "8025:8005"  # Different port for green
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-green:5432/claude_prod
+      - REDIS_URL=redis://redis-green:6379
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - ./storage/documents:/app/uploads
+    depends_on:
+      - postgres-green
+      - redis-green
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+
+  ai-service-green:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8026:8006"  # Different port for green
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-green:5432/claude_prod
+      - REDIS_URL=redis://redis-green:6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      - postgres-green
+      - redis-green
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+
+  notification-service-green:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "8027:8007"  # Different port for green
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-green:5432/claude_prod
+      - REDIS_URL=redis://redis-green:6379
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+    depends_on:
+      - postgres-green
+      - redis-green
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  postgres-green:
+    image: postgres:15-alpine
+    ports:
+      - "5435:5432"  # Different port for green
+    environment:
+      - POSTGRES_DB=claude_prod
+      - POSTGRES_USER=claude
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_green_data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql/init-prod.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backups:/backups
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  redis-green:
+    image: redis:7-alpine
+    ports:
+      - "6382:6379"  # Different port for green
+    volumes:
+      - redis_green_data:/data
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Green monitoring
+  prometheus-green:
+    image: prom/prometheus:latest
+    ports:
+      - "9092:9090"  # Different port for green
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_green_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=90d'
+      - '--web.enable-lifecycle'
+    networks:
+      - claude-network
+    restart: unless-stopped
+
+  grafana-green:
+    image: grafana/grafana:latest
+    ports:
+      - "3006:3000"  # Different port for green
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_green_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - claude-network
+    restart: unless-stopped
+
+volumes:
+  postgres_green_data:
+  redis_green_data:
+  prometheus_green_data:
+  grafana_green_data:
+
+networks:
+  claude-network:
+    driver: bridge

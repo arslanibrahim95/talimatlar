@@ -1,0 +1,140 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Claude Talimat - System Overview",
+    "tags": ["claude-talimat", "system", "overview"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Uptime",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "time() - node_boot_time_seconds",
+            "legendFormat": "Uptime (seconds)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 86400},
+                {"color": "green", "value": 604800}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "CPU Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "legendFormat": "CPU Usage %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Percentage",
+            "min": 0,
+            "max": 100
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+            "legendFormat": "Memory Usage %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Percentage",
+            "min": 0,
+            "max": 100
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Disk Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+        "targets": [
+          {
+            "expr": "(1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100",
+            "legendFormat": "Disk Usage %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Percentage",
+            "min": 0,
+            "max": 100
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Network I/O",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(node_network_receive_bytes_total[5m])",
+            "legendFormat": "Receive {{device}}"
+          },
+          {
+            "expr": "rate(node_network_transmit_bytes_total[5m])",
+            "legendFormat": "Transmit {{device}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Bytes/sec",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Load Average",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "node_load1",
+            "legendFormat": "1m load"
+          },
+          {
+            "expr": "node_load5",
+            "legendFormat": "5m load"
+          },
+          {
+            "expr": "node_load15",
+            "legendFormat": "15m load"
+          }
+        ]
+      }
+    ]
+  }
+}

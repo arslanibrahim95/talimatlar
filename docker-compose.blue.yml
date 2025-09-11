@@ -1,0 +1,240 @@
+version: '3.8'
+
+services:
+  # Blue Environment (Current Production)
+  frontend-blue:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "3001:3000"  # Different port for blue
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=https://api.claude-talimat.com
+      - VITE_WS_URL=wss://api.claude-talimat.com
+    depends_on:
+      - nginx-blue
+    networks:
+      - claude-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-blue.rule=Host(`blue.claude-talimat.com`)"
+      - "traefik.http.routers.frontend-blue.tls=true"
+
+  nginx-blue:
+    image: nginx:alpine
+    ports:
+      - "8081:80"  # Different port for blue
+      - "8444:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.blue.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - auth-service-blue
+      - analytics-service-blue
+      - instruction-service-blue
+      - ai-service-blue
+      - notification-service-blue
+    networks:
+      - claude-network
+    restart: unless-stopped
+
+  auth-service-blue:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8014:8004"  # Different port for blue
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-blue:5432/claude_prod
+      - REDIS_URL=redis://redis-blue:6379
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - postgres-blue
+      - redis-blue
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  analytics-service-blue:
+    build:
+      context: ./analytics-service
+      dockerfile: Dockerfile
+    ports:
+      - "8013:8003"  # Different port for blue
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-blue:5432/claude_prod
+      - REDIS_URL=redis://redis-blue:6379
+    depends_on:
+      - postgres-blue
+      - redis-blue
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  instruction-service-blue:
+    build:
+      context: ./instruction-service
+      dockerfile: Dockerfile
+    ports:
+      - "8015:8005"  # Different port for blue
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-blue:5432/claude_prod
+      - REDIS_URL=redis://redis-blue:6379
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - ./storage/documents:/app/uploads
+    depends_on:
+      - postgres-blue
+      - redis-blue
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+
+  ai-service-blue:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8016:8006"  # Different port for blue
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-blue:5432/claude_prod
+      - REDIS_URL=redis://redis-blue:6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      - postgres-blue
+      - redis-blue
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+
+  notification-service-blue:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "8017:8007"  # Different port for blue
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://claude:${POSTGRES_PASSWORD}@postgres-blue:5432/claude_prod
+      - REDIS_URL=redis://redis-blue:6379
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+    depends_on:
+      - postgres-blue
+      - redis-blue
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  postgres-blue:
+    image: postgres:15-alpine
+    ports:
+      - "5434:5432"  # Different port for blue
+    environment:
+      - POSTGRES_DB=claude_prod
+      - POSTGRES_USER=claude
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_blue_data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql/init-prod.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backups:/backups
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  redis-blue:
+    image: redis:7-alpine
+    ports:
+      - "6381:6379"  # Different port for blue
+    volumes:
+      - redis_blue_data:/data
+    networks:
+      - claude-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Blue monitoring
+  prometheus-blue:
+    image: prom/prometheus:latest
+    ports:
+      - "9091:9090"  # Different port for blue
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_blue_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=90d'
+      - '--web.enable-lifecycle'
+    networks:
+      - claude-network
+    restart: unless-stopped
+
+  grafana-blue:
+    image: grafana/grafana:latest
+    ports:
+      - "3005:3000"  # Different port for blue
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_blue_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - claude-network
+    restart: unless-stopped
+
+volumes:
+  postgres_blue_data:
+  redis_blue_data:
+  prometheus_blue_data:
+  grafana_blue_data:
+
+networks:
+  claude-network:
+    driver: bridge

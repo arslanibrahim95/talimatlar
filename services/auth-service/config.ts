@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
+// Simple config without dotenv loading
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default('8001'),
   DATABASE_URL: z.string().optional(),
   REDIS_URL: z.string().default('redis://localhost:6379'),
-  JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
+  JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters').default('your-super-secret-jwt-key-here-change-this-in-production-32-chars'),
   JWT_ALGORITHM: z.string().default('HS256'),
   JWT_EXPIRATION: z.string().default('24h'),
   JWT_REFRESH_EXPIRATION: z.string().default('7d'),

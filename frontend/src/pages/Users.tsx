@@ -1,30 +1,44 @@
 import React from 'react';
-import Layout from '../components/layout/Layout';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 
 const Users: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Kullanıcılar
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Sistem kullanıcılarını yönetin
-            </p>
-          </div>
-          <Button>👤 Yeni Kullanıcı</Button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Kullanıcılar</h1>
+          <p className="text-gray-600 dark:text-gray-400">Kullanıcı yönetimi ana sayfası</p>
         </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <p className="text-center text-gray-600 dark:text-gray-400">
-            Kullanıcı yönetimi sayfası burada olacak
-          </p>
+        <div className="mt-4 sm:mt-0 flex space-x-2">
+          <Button 
+            onClick={() => navigate('/users')}
+            className="w-full sm:w-auto"
+          >
+            Kullanıcıları Görüntüle
+          </Button>
         </div>
       </div>
-    </Layout>
+
+      {/* Redirect Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Kullanıcı Yönetimi</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Kullanıcı yönetimi için ana sayfaya yönlendiriliyorsunuz.
+          </p>
+          <Button onClick={() => navigate('/users')}>
+            Kullanıcılara Git
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

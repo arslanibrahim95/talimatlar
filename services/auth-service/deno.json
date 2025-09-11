@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Authentication service for Claude Talimat system",
   "main": "main.ts",
+  "exports": {
+    ".": "./main.ts"
+  },
   "scripts": {
     "dev": "deno run --allow-net --allow-env --allow-read --watch main.ts",
     "start": "deno run --allow-net --allow-env --allow-read main.ts",
@@ -20,7 +23,6 @@
     "cors": "https://deno.land/x/cors@v1.2.2/mod.ts"
   },
   "compilerOptions": {
-    "allowJs": true,
     "lib": ["deno.window"],
     "strict": true
   },

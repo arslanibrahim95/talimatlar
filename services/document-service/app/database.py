@@ -47,7 +47,7 @@ class Document(Base):
     mime_type = Column(String(100))
     category = Column(String(100), nullable=False)
     tags = Column(JSON, default=list)
-    metadata = Column(JSON, default=dict)
+    document_metadata = Column(JSON, default=dict)
     
     # User and tenant info
     uploaded_by = Column(String, nullable=False)

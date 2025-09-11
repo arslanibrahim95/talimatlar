@@ -29,7 +29,7 @@ const ResetPassword: React.FC = () => {
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  const onSubmit = async (data: ResetPasswordFormData) => {
+  const onSubmit = async (_data: ResetPasswordFormData) => {
     if (!token) {
       setError('Geçersiz veya eksik token.');
       return;
@@ -166,6 +166,13 @@ const ResetPassword: React.FC = () => {
             </div>
           </div>
         </form>
+
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            © 2024 Claude Talimat. Tüm hakları saklıdır.
+          </p>
+        </div>
       </div>
     </div>
   );

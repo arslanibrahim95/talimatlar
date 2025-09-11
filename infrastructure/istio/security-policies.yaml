@@ -1,0 +1,116 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: default
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: claude-auth-policy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: claude-auth
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/claude-frontend"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/auth/*", "/users/*", "/health"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: claude-analytics-policy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: claude-analytics
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/claude-frontend"]
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+        paths: ["/analytics/*", "/metrics/*", "/health"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: claude-document-policy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: claude-document
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/claude-frontend"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/documents/*", "/search", "/categories", "/health"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: claude-instruction-policy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: claude-instruction
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/claude-frontend"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/instructions/*", "/search", "/categories", "/health"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: claude-ai-policy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: claude-ai
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/claude-frontend"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/chat/*", "/commands/*", "/analytics/*", "/config/*", "/health"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: claude-notification-policy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: claude-notification
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/claude-frontend"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/notifications/*", "/health"]

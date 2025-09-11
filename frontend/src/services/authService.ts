@@ -1,165 +1,96 @@
-import axios from 'axios'
+import { User, LoginCredentials, RegisterData, AuthResponse, ServiceResponse } from '../types';
+import { BaseService } from './BaseService';
+import { SecureStorage } from '../utils/security';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001'
+class AuthService extends BaseService {
+  constructor() {
+    super('AUTH_SERVICE', {
+      timeout: 15000, // Shorter timeout for auth requests
+      retries: 2,     // Fewer retries for auth
+    });
+  }
 
-// Create axios instance
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
+  async login(credentials: LoginCredentials): Promise<ServiceResponse<AuthResponse>> {
+    const response = await this.post<AuthResponse>('/auth/login', credentials);
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('auth-storage')
-    if (token) {
-      try {
-        const authData = JSON.parse(token)
-        if (authData.state?.token) {
-          config.headers.Authorization = `Bearer ${authData.state.token}`
-        }
-      } catch (error) {
-        console.error('Error parsing auth token:', error)
+    if (response.success && response.data?.access_token) {
+      // Store token securely
+      SecureStorage.setItem('auth_token', response.data.access_token);
+      
+      // Store user data securely
+      if (response.data.user) {
+        SecureStorage.setItem('user_data', JSON.stringify(response.data.user));
       }
     }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
 
-// Response interceptor to handle auth errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Clear auth data and redirect to login
-      localStorage.removeItem('auth-storage')
-      window.location.href = '/auth/login'
+    return response;
+  }
+
+  async register(data: RegisterData): Promise<ServiceResponse<AuthResponse>> {
+    const response = await this.post<AuthResponse>('/auth/register', data);
+
+    if (response.success && response.data?.access_token) {
+      // Store token securely
+      SecureStorage.setItem('auth_token', response.data.access_token);
+      
+      // Store user data securely
+      if (response.data.user) {
+        SecureStorage.setItem('user_data', JSON.stringify(response.data.user));
+      }
     }
-    return Promise.reject(error)
+
+    return response;
   }
-)
 
-export interface LoginRequest {
-  phone: string
-  password: string
-}
-
-export interface LoginResponse {
-  user: {
-    id: string
-    phone: string
-    email?: string
-    role: string
-    tenantId?: string
-    firstName?: string
-    lastName?: string
-    isActive: boolean
-    createdAt: string
-    updatedAt: string
+  async logout(): Promise<ServiceResponse<void>> {
+    const response = await this.post<void>('/auth/logout');
+    
+    // Always clear secure storage regardless of response
+    SecureStorage.clear();
+    
+    return response;
   }
-  token: string
-  refreshToken: string
+
+  async getCurrentUser(): Promise<ServiceResponse<User>> {
+    const response = await this.get<User>('/auth/me');
+    
+    if (!response.success) {
+      SecureStorage.clear();
+    }
+    
+    return response;
+  }
+
+  async refreshToken(): Promise<ServiceResponse<AuthResponse>> {
+    const response = await this.post<AuthResponse>('/auth/refresh');
+
+    if (response.success && response.data?.access_token) {
+      SecureStorage.setItem('auth_token', response.data.access_token);
+    } else {
+      SecureStorage.clear();
+    }
+
+    return response;
+  }
+
+  async forgotPassword(email: string): Promise<ServiceResponse<void>> {
+    return this.post<void>('/auth/forgot-password', { email });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<ServiceResponse<void>> {
+    return this.post<void>('/auth/reset-password', { 
+      token, 
+      new_password: newPassword 
+    });
+  }
+
+  isAuthenticated(): boolean {
+    return !!SecureStorage.getItem('auth_token');
+  }
+
+  getToken(): string | null {
+    return SecureStorage.getItem('auth_token');
+  }
 }
 
-export interface RegisterRequest {
-  phone: string
-  email?: string
-  password: string
-  firstName?: string
-  lastName?: string
-}
-
-export interface OTPRequest {
-  phone: string
-}
-
-export interface OTPVerifyRequest {
-  phone: string
-  otp: string
-}
-
-export interface RefreshTokenRequest {
-  refreshToken: string
-}
-
-export const authService = {
-  // Login with phone and password
-  async login(phone: string, password: string): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/auth/login', {
-      phone,
-      password,
-    })
-    return response.data
-  },
-
-  // Register new user
-  async register(userData: RegisterRequest): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/auth/register', userData)
-    return response.data
-  },
-
-  // Request OTP
-  async requestOTP(phone: string): Promise<void> {
-    await api.post('/auth/otp/request', { phone })
-  },
-
-  // Verify OTP and login
-  async verifyOTP(phone: string, otp: string): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/auth/otp/verify', {
-      phone,
-      otp,
-    })
-    return response.data
-  },
-
-  // Refresh token
-  async refreshToken(token: string): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/auth/refresh', {
-      refreshToken: token,
-    })
-    return response.data
-  },
-
-  // Logout
-  async logout(): Promise<void> {
-    await api.post('/auth/logout')
-  },
-
-  // Get current user
-  async getCurrentUser(): Promise<LoginResponse['user']> {
-    const response = await api.get<LoginResponse['user']>('/auth/me')
-    return response.data
-  },
-
-  // Update user profile
-  async updateProfile(userData: Partial<LoginResponse['user']>): Promise<LoginResponse['user']> {
-    const response = await api.put<LoginResponse['user']>('/auth/me', userData)
-    return response.data
-  },
-
-  // Change password
-  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    await api.post('/auth/change-password', {
-      currentPassword,
-      newPassword,
-    })
-  },
-
-  // Get user sessions
-  async getUserSessions(): Promise<any[]> {
-    const response = await api.get('/auth/sessions')
-    return response.data
-  },
-
-  // Revoke session
-  async revokeSession(sessionId: string): Promise<void> {
-    await api.delete(`/auth/sessions/${sessionId}`)
-  },
-}
-
-export default authService
+export const authService = new AuthService();

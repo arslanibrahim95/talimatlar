@@ -8,25 +8,33 @@ interface ProtectedRouteProps {
   requiredRole?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requiredRole 
+}) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
+  // Show loading spinner while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Yükleniyor..." />
+        <div className="text-center">
+          <LoadingSpinner className="w-8 h-8 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Yükleniyor...</p>
+        </div>
       </div>
     );
   }
 
+  // Redirect to login if not authenticated
   if (!isAuthenticated || !user) {
-    // Redirect to login page with return url
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
+  // Check role if required
   if (requiredRole && user.role !== requiredRole) {
-    // Redirect to unauthorized page
+    // Redirect to unauthorized page or dashboard
     return <Navigate to="/unauthorized" replace />;
   }
 

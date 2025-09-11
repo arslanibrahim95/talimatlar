@@ -1,0 +1,27 @@
+{
+  "imports": {
+    "oak": "https://deno.land/x/oak@v11.1.0/mod.ts",
+    "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
+    "djwt": "https://deno.land/x/djwt@v2.8/mod.ts"
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-env --allow-read --allow-write main.ts",
+    "dev": "deno run --allow-net --allow-env --allow-read --allow-write --watch main.ts",
+    "test": "deno test --allow-net --allow-env --allow-read --allow-write",
+    "fmt": "deno fmt",
+    "lint": "deno lint"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  }
+}

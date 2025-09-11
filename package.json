@@ -9,7 +9,7 @@
     "dev:auth": "cd services/auth-service && deno task dev",
     "dev:document": "cd services/document-service && uvicorn main:app --reload --port 8002",
     "dev:analytics": "cd services/analytics-service && uvicorn main:app --reload --port 8003",
-    "dev:notification": "cd services/notification-service && go run main.go",
+    "dev:notification": "cd services/notification-service && go mod tidy && go run main.go",
     "dev:all": "docker-compose up -d && npm run dev:frontend",
     "build": "npm run build:frontend && npm run build:services",
     "build:frontend": "cd frontend && npm run build",
@@ -33,6 +33,16 @@
     "test:analytics": "cd services/analytics-service && python -m pytest",
     "test:notification": "cd services/notification-service && go test ./...",
     "test:all": "npm run test:frontend && npm run test:backend",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "cd frontend && npm run test:e2e",
+    "test:performance": "k6 run tests/performance/load-test.js && k6 run tests/performance/stress-test.js",
+    "test:security": "vitest run tests/security",
+    "test:full": "./scripts/run-tests.sh all",
+    "test:unit": "./scripts/run-tests.sh unit",
+    "test:integration:full": "./scripts/run-tests.sh integration",
+    "test:e2e:full": "./scripts/run-tests.sh e2e",
+    "test:performance:full": "./scripts/run-tests.sh performance",
+    "test:security:full": "./scripts/run-tests.sh security",
     "lint": "npm run lint:frontend && npm run lint:backend",
     "lint:frontend": "cd frontend && npm run lint",
     "lint:backend": "npm run lint:auth && npm run lint:document && npm run lint:analytics && npm run lint:notification",
@@ -107,5 +117,10 @@
   "bugs": {
     "url": "https://github.com/arslanibrahim95/talimatlar/issues"
   },
-  "homepage": "https://github.com/arslanibrahim95/talimatlar#readme"
+  "homepage": "https://github.com/arslanibrahim95/talimatlar#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.1.5"
+  }
 }

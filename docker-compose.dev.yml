@@ -1,0 +1,190 @@
+version: '3.8'
+
+services:
+  # Development Environment Configuration
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8080
+      - VITE_WS_URL=ws://localhost:8080
+    depends_on:
+      - nginx
+    networks:
+      - claude-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./infrastructure/nginx/nginx.dev.conf:/etc/nginx/nginx.conf
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - auth-service
+      - analytics-service
+      - instruction-service
+      - ai-service
+      - notification-service
+    networks:
+      - claude-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://claude:claude123@postgres:5432/claude_dev
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=dev-jwt-secret-key
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - claude-network
+
+  analytics-service:
+    build:
+      context: ./analytics-service
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://claude:claude123@postgres:5432/claude_dev
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - claude-network
+
+  instruction-service:
+    build:
+      context: ./instruction-service
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8005"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://claude:claude123@postgres:5432/claude_dev
+      - REDIS_URL=redis://redis:6379
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - ./storage/documents:/app/uploads
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - claude-network
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://claude:claude123@postgres:5432/claude_dev
+      - REDIS_URL=redis://redis:6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - claude-network
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "8007:8007"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://claude:claude123@postgres:5432/claude_dev
+      - REDIS_URL=redis://redis:6379
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - claude-network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=claude_dev
+      - POSTGRES_USER=claude
+      - POSTGRES_PASSWORD=claude123
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql/init-dev.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - claude-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - claude-network
+
+  # Development monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_dev_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    networks:
+      - claude-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3004:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - claude-network
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  prometheus_dev_data:
+  grafana_dev_data:
+
+networks:
+  claude-network:
+    driver: bridge

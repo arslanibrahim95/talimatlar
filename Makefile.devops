@@ -1,0 +1,287 @@
+# Claude Talimat DevOps Makefile
+# Provides easy commands for development, testing, and deployment
+
+.PHONY: help install dev staging prod build test clean deploy health status logs
+
+# Default target
+help:
+	@echo "Claude Talimat DevOps Commands"
+	@echo "=============================="
+	@echo ""
+	@echo "Development:"
+	@echo "  make dev          - Start development environment"
+	@echo "  make dev-stop     - Stop development environment"
+	@echo "  make dev-logs     - Show development logs"
+	@echo "  make dev-shell    - Open shell in development container"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make test         - Run all tests"
+	@echo "  make test-unit    - Run unit tests"
+	@echo "  make test-integration - Run integration tests"
+	@echo "  make test-e2e     - Run E2E tests"
+	@echo "  make test-coverage - Run tests with coverage"
+	@echo ""
+	@echo "Building:"
+	@echo "  make build        - Build all Docker images"
+	@echo "  make build-dev    - Build development images"
+	@echo "  make build-prod   - Build production images"
+	@echo ""
+	@echo "Deployment:"
+	@echo "  make deploy-dev   - Deploy to development"
+	@echo "  make deploy-staging - Deploy to staging"
+	@echo "  make deploy-prod  - Deploy to production (blue-green)"
+	@echo "  make rollback     - Rollback production deployment"
+	@echo ""
+	@echo "Monitoring:"
+	@echo "  make health       - Run health checks"
+	@echo "  make status       - Show service status"
+	@echo "  make logs         - Show all logs"
+	@echo "  make monitor      - Start continuous monitoring"
+	@echo ""
+	@echo "Maintenance:"
+	@echo "  make clean        - Clean up Docker resources"
+	@echo "  make backup       - Create backup"
+	@echo "  make restore      - Restore from backup"
+	@echo "  make update       - Update all services"
+	@echo ""
+
+# Development Environment
+dev:
+	@echo "🚀 Starting development environment..."
+	@./scripts/deploy.sh dev deploy
+
+dev-stop:
+	@echo "🛑 Stopping development environment..."
+	@docker-compose -f docker-compose.dev.yml down
+
+dev-logs:
+	@echo "📋 Showing development logs..."
+	@docker-compose -f docker-compose.dev.yml logs -f
+
+dev-shell:
+	@echo "🐚 Opening development shell..."
+	@docker-compose -f docker-compose.dev.yml exec frontend /bin/sh
+
+# Testing
+test:
+	@echo "🧪 Running all tests..."
+	@cd frontend && npm run test:all
+
+test-unit:
+	@echo "🧪 Running unit tests..."
+	@cd frontend && npm run test:unit
+
+test-integration:
+	@echo "🧪 Running integration tests..."
+	@cd frontend && npm run test:integration
+
+test-e2e:
+	@echo "🧪 Running E2E tests..."
+	@cd frontend && npm run test:e2e
+
+test-coverage:
+	@echo "🧪 Running tests with coverage..."
+	@cd frontend && npm run test:coverage
+
+# Building
+build:
+	@echo "🔨 Building all Docker images..."
+	@docker-compose build
+
+build-dev:
+	@echo "🔨 Building development images..."
+	@docker-compose -f docker-compose.dev.yml build
+
+build-prod:
+	@echo "🔨 Building production images..."
+	@docker-compose -f docker-compose.prod.yml build
+
+# Deployment
+deploy-dev:
+	@echo "🚀 Deploying to development..."
+	@./scripts/deploy.sh dev deploy
+
+deploy-staging:
+	@echo "🚀 Deploying to staging..."
+	@./scripts/deploy.sh staging deploy
+
+deploy-prod:
+	@echo "🚀 Deploying to production (blue-green)..."
+	@./scripts/blue-green-deploy.sh deploy
+
+rollback:
+	@echo "🔄 Rolling back production deployment..."
+	@./scripts/blue-green-deploy.sh rollback
+
+# Monitoring
+health:
+	@echo "🏥 Running health checks..."
+	@./scripts/health-check.sh dev comprehensive
+
+status:
+	@echo "📊 Showing service status..."
+	@./scripts/deploy.sh dev status
+
+logs:
+	@echo "📋 Showing all logs..."
+	@docker-compose logs -f
+
+monitor:
+	@echo "👀 Starting continuous monitoring..."
+	@./scripts/health-check.sh dev monitor 30
+
+# Maintenance
+clean:
+	@echo "🧹 Cleaning up Docker resources..."
+	@docker system prune -f
+	@docker volume prune -f
+	@docker network prune -f
+
+backup:
+	@echo "💾 Creating backup..."
+	@./scripts/backup.sh
+
+restore:
+	@echo "📥 Restoring from backup..."
+	@./scripts/restore.sh
+
+update:
+	@echo "🔄 Updating all services..."
+	@git pull origin main
+	@docker-compose pull
+	@docker-compose up -d
+
+# Security
+security-scan:
+	@echo "🔒 Running security scan..."
+	@./scripts/security-scan.sh
+
+# Database
+db-migrate:
+	@echo "🗄️ Running database migrations..."
+	@docker-compose exec postgres psql -U claude -d claude_dev -f /docker-entrypoint-initdb.d/migrations.sql
+
+db-backup:
+	@echo "💾 Backing up database..."
+	@docker-compose exec postgres pg_dump -U claude claude_dev > backup_$(shell date +%Y%m%d_%H%M%S).sql
+
+db-restore:
+	@echo "📥 Restoring database..."
+	@docker-compose exec -T postgres psql -U claude -d claude_dev < backup.sql
+
+# Linting and Formatting
+lint:
+	@echo "🔍 Running linters..."
+	@cd frontend && npm run lint
+
+format:
+	@echo "✨ Formatting code..."
+	@cd frontend && npm run format
+
+# Docker Management
+docker-clean:
+	@echo "🧹 Cleaning Docker system..."
+	@docker system prune -af
+	@docker volume prune -f
+
+docker-stats:
+	@echo "📊 Showing Docker stats..."
+	@docker stats
+
+# Environment Management
+env-dev:
+	@echo "🔧 Setting up development environment..."
+	@cp env.dev .env
+
+env-staging:
+	@echo "🔧 Setting up staging environment..."
+	@cp env.staging .env
+
+env-prod:
+	@echo "🔧 Setting up production environment..."
+	@cp env.production .env
+
+# Quick Commands
+quick-start:
+	@echo "⚡ Quick start development environment..."
+	@make env-dev
+	@make dev
+
+quick-test:
+	@echo "⚡ Quick test run..."
+	@make test-unit
+	@make health
+
+quick-deploy:
+	@echo "⚡ Quick deployment to staging..."
+	@make deploy-staging
+	@make health
+
+# Production Commands
+prod-status:
+	@echo "📊 Production status..."
+	@./scripts/blue-green-deploy.sh status
+
+prod-health:
+	@echo "🏥 Production health check..."
+	@./scripts/blue-green-deploy.sh health
+
+prod-logs:
+	@echo "📋 Production logs..."
+	@docker-compose -f docker-compose.prod.yml logs -f
+
+# Development Tools
+install-deps:
+	@echo "📦 Installing dependencies..."
+	@cd frontend && npm install
+
+install-dev-deps:
+	@echo "📦 Installing development dependencies..."
+	@cd frontend && npm install --dev
+
+# Git Hooks
+setup-hooks:
+	@echo "🪝 Setting up Git hooks..."
+	@cp scripts/pre-commit .git/hooks/
+	@chmod +x .git/hooks/pre-commit
+
+# Documentation
+docs:
+	@echo "📚 Generating documentation..."
+	@cd frontend && npm run docs
+
+# Performance
+perf-test:
+	@echo "⚡ Running performance tests..."
+	@./scripts/performance-test.sh
+
+# All-in-one Commands
+full-test:
+	@echo "🧪 Running full test suite..."
+	@make lint
+	@make test
+	@make security-scan
+	@make health
+
+full-deploy:
+	@echo "🚀 Full deployment pipeline..."
+	@make full-test
+	@make deploy-staging
+	@make health
+	@make deploy-prod
+
+# Emergency Commands
+emergency-stop:
+	@echo "🚨 Emergency stop all services..."
+	@docker-compose down
+	@docker-compose -f docker-compose.dev.yml down
+	@docker-compose -f docker-compose.staging.yml down
+	@docker-compose -f docker-compose.prod.yml down
+	@docker-compose -f docker-compose.blue.yml down
+	@docker-compose -f docker-compose.green.yml down
+
+emergency-restart:
+	@echo "🔄 Emergency restart all services..."
+	@make emergency-stop
+	@sleep 5
+	@make dev

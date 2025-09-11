@@ -1,0 +1,72 @@
+{
+  "enabled": true,
+  "updateInterval": "weekly",
+  "backupBeforeUpdate": true,
+  "notifyOnUpdate": true,
+  "notifyOnError": true,
+  "maxBackups": 10,
+  "services": {
+    "frontend": {
+      "enabled": true,
+      "updateDependencies": true,
+      "rebuildImage": true
+    },
+    "auth-service": {
+      "enabled": true,
+      "updateDependencies": true,
+      "rebuildImage": true
+    },
+    "analytics-service": {
+      "enabled": true,
+      "updateDependencies": true,
+      "rebuildImage": true
+    },
+    "instruction-service": {
+      "enabled": true,
+      "updateDependencies": true,
+      "rebuildImage": true
+    },
+    "ai-service": {
+      "enabled": true,
+      "updateDependencies": true,
+      "rebuildImage": true
+    }
+  },
+  "system": {
+    "updatePackages": false,
+    "updateDocker": true,
+    "cleanupOldImages": true
+  },
+  "notifications": {
+    "email": {
+      "enabled": false,
+      "recipients": []
+    },
+    "webhook": {
+      "enabled": false,
+      "url": ""
+    }
+  },
+  "schedules": {
+    "maintenance": {
+      "enabled": true,
+      "time": "03:00",
+      "timezone": "Europe/Istanbul",
+      "dayOfWeek": "sunday"
+    },
+    "healthCheck": {
+      "enabled": true,
+      "interval": "hourly"
+    }
+  },
+  "rollback": {
+    "enabled": true,
+    "maxRollbackAttempts": 3,
+    "rollbackOnHealthCheckFailure": true
+  },
+  "logging": {
+    "level": "INFO",
+    "maxLogFiles": 30,
+    "maxLogSize": "10MB"
+  }
+}

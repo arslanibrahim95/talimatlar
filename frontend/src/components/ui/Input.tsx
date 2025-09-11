@@ -1,5 +1,7 @@
 import React from 'react'
 import { cn } from '@/utils/cn'
+import { THEME_COLORS, COMPONENT_COLORS } from '../../constants/colors'
+import { COMPONENT_TYPOGRAPHY } from '../../constants/typography'
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -15,23 +17,41 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block mb-2 text-sm font-medium text-foreground transition-colors duration-200">
             {label}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <div className="h-5 w-5 text-gray-400">{leftIcon}</div>
+              <div className="h-5 w-5 text-muted-foreground transition-colors duration-200">
+                {leftIcon}
+              </div>
             </div>
           )}
           <input
             type={type}
             className={cn(
-              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+              // Modern base styles
+              'flex h-10 w-full rounded-xl border px-3 py-2 text-sm',
+              'bg-background text-foreground',
+              'placeholder:text-muted-foreground',
+              'transition-all duration-200 ease-in-out',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+              'file:border-0 file:bg-transparent file:text-sm file:font-medium',
+              // Modern spacing
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',
-              error && 'border-red-500 focus-visible:ring-red-500',
+              // Modern states
+              error 
+                ? 'border-destructive focus-visible:ring-red-500' 
+                : 'border-input focus-visible:ring-blue-500',
+              // Modern shadows
+              'shadow-modern-xs hover:shadow-modern-sm',
+              'focus-visible:shadow-modern-md',
+              // Modern focus effects
+              'focus-visible:border-primary',
               className
             )}
             ref={ref}
@@ -39,17 +59,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           />
           {rightIcon && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <div className="h-5 w-5 text-gray-400">{rightIcon}</div>
+              <div className="h-5 w-5 text-muted-foreground transition-colors duration-200">
+                {rightIcon}
+              </div>
             </div>
           )}
         </div>
         {(error || helperText) && (
           <p
             className={cn(
-              'mt-1 text-sm',
+              'mt-2 text-sm transition-colors duration-200',
               error
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-gray-500 dark:text-gray-400'
+                ? 'text-destructive font-medium'
+                : 'text-muted-foreground'
             )}
           >
             {error || helperText}

@@ -7,6 +7,16 @@ import { logger } from '../utils/logger.ts';
 import { Database } from '../database/database.ts';
 import { ValidationError, AuthenticationError, ConflictError } from '../middleware/error.ts';
 import { authenticate, AuthenticatedContext } from '../middleware/auth.ts';
+import { crypto } from 'crypto';
+
+// Helper function to hash JWT tokens
+async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hash));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 const router = new Router();
 
@@ -190,11 +200,12 @@ router.post('/login', async (ctx) => {
         config.jwt.secret
       );
       
-      // Store session
+      // Store session with hashed token
+      const tokenHash = await hashToken(token);
       await client.queryObject(
         `INSERT INTO user_sessions (user_id, token_hash, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '24 hours')`,
-        [user.id, token] // In production, hash the token
+        [user.id, tokenHash]
       );
       
       logger.auth('user_logged_in', user.id, true);

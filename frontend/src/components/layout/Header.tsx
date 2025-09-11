@@ -1,28 +1,46 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
-import { useThemeStore } from '../../stores/themeStore';
+import { useAuth } from '../../stores/authStore';
+import { useTheme } from '../../stores/themeStore';
 import { Button } from '../ui/Button';
-import { cn } from '../../utils/cn';
+import { Search } from '../ui/Search';
+import { DarkModeToggle } from '../ui/DarkModeToggle';
+import { mainNavigation } from '../../config/navigation';
+import { TestUserButton } from '../TestUserProvider';
 
-const Header: React.FC = () => {
-  const { user, logout } = useAuthStore();
-  const { theme, toggleTheme } = useThemeStore();
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+  const handleLogout = () => {
+    logout();
+    navigate('/auth/login');
   };
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {/* Logo and Mobile Menu */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            {/* Mobile menu button */}
+            <button
+              onClick={onMenuClick}
+              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            {/* Logo */}
+            <Link to="/dashboard" className="flex items-center ml-2 lg:ml-0">
+              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-white font-bold text-sm">CT</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
@@ -31,140 +49,97 @@ const Header: React.FC = () => {
             </Link>
           </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/dashboard"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/documents"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Dokümanlar
-            </Link>
-            <Link
-              to="/analytics"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Analitik
-            </Link>
-            <Link
-              to="/settings"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Ayarlar
-            </Link>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            {mainNavigation.slice(0, 4).map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
+          {/* Center Search */}
+          <div className="hidden lg:flex flex-1 max-w-md mx-8">
+            <Search 
+              placeholder="Menüde ara..."
+              size="sm"
+              className="w-full"
+            />
+          </div>
+
           {/* Right side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 lg:space-x-4">
             {/* Theme toggle */}
+            <DarkModeToggle 
+              variant="minimal" 
+              size="sm"
+              className="hidden sm:flex"
+            />
+            
+            {/* Mobile theme toggle */}
+            <DarkModeToggle 
+              variant="icon-only" 
+              size="sm"
+              className="sm:hidden"
+            />
+
+            {/* User menu */}
+            {user && (
+              <div className="relative">
+                <div className="flex items-center space-x-2 lg:space-x-3">
+                  <div className="hidden sm:block text-right">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user.first_name || user.email || 'Kullanıcı'}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {user.role}
+                    </div>
+                  </div>
+                  <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {(user.first_name || user.email || 'U').charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Test User Button */}
+            <div className="hidden sm:block">
+              <TestUserButton />
+            </div>
+            
+            {/* Logout button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="hidden sm:inline-flex"
+            >
+              Çıkış
+            </Button>
+            
+            {/* Mobile logout icon */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleTheme}
-              className="p-2"
+              onClick={handleLogout}
+              className="sm:hidden p-2"
+              title="Çıkış yap"
             >
-              {theme === 'dark' ? (
-                <SunIcon className="w-5 h-5" />
-              ) : (
-                <MoonIcon className="w-5 h-5" />
-              )}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
             </Button>
-
-            {/* Notifications */}
-            <Button variant="ghost" size="sm" className="p-2 relative">
-              <BellIcon className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </Button>
-
-            {/* User menu */}
-            {user ? (
-              <div className="relative">
-                <Button
-                  variant="ghost"
-                  className="flex items-center space-x-2 p-2"
-                >
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                  <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {user.name || user.email}
-                  </span>
-                  <ChevronDownIcon className="w-4 h-4" />
-                </Button>
-                
-                {/* Dropdown menu */}
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50">
-                  <Link
-                    to="/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    Profil
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    Ayarlar
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    Çıkış Yap
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link to="/login">
-                  <Button variant="ghost" size="sm">
-                    Giriş Yap
-                  </Button>
-                </Link>
-                <Link to="/register">
-                  <Button size="sm">
-                    Kayıt Ol
-                  </Button>
-                </Link>
-              </div>
-            )}
           </div>
         </div>
       </div>
     </header>
   );
 };
-
-// Icons
-const SunIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-  </svg>
-);
-
-const MoonIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-  </svg>
-);
-
-const BellIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-  </svg>
-);
-
-const ChevronDownIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
 
 export default Header;

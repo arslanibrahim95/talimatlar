@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "imports": {
+    "oak": "https://deno.land/x/oak@v12.6.1/mod.ts",
+    "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
+    "std/": "https://deno.land/std@0.208.0/",
+    "fresh/": "https://deno.land/x/fresh@1.6.0/"
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-read --allow-write --allow-env main.ts",
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --watch main.ts",
+    "test": "deno test --allow-net --allow-read --allow-write --allow-env",
+    "lint": "deno lint",
+    "fmt": "deno fmt",
+    "check": "deno check main.ts",
+    "bundle": "deno bundle main.ts dist/main.js",
+    "compile": "deno compile --allow-net --allow-read --allow-write --allow-env main.ts"
+  },
+  "lint": {
+    "include": ["src/", "main.ts"],
+    "exclude": ["node_modules/"]
+  },
+  "fmt": {
+    "include": ["src/", "main.ts"],
+    "exclude": ["node_modules/"]
+  }
+}

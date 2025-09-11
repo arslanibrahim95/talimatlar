@@ -16,10 +16,11 @@ HEALTH_STATUS_FILE="$PROJECT_DIR/logs/health-status.json"
 # Health check endpoints
 ENDPOINTS=(
     "http://localhost/health"
-    "http://localhost:8001/health"
     "http://localhost:8002/health"
     "http://localhost:8003/health"
     "http://localhost:8004/health"
+    "http://localhost:8005/health"
+    "http://localhost:8006/health"
 )
 
 # Thresholds

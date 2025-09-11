@@ -141,10 +141,11 @@ check_api_endpoints() {
     
     local endpoints=(
         "http://localhost/health"
-        "http://localhost:8001/health"
         "http://localhost:8002/health"
         "http://localhost:8003/health"
         "http://localhost:8004/health"
+        "http://localhost:8005/health"
+        "http://localhost:8006/health"
     )
     
     local failed_endpoints=()

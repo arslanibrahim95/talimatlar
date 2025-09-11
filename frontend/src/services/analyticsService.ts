@@ -1,148 +1,159 @@
-import axios from 'axios';
-import { AnalyticsOverview, TrendData, CategoryData, TopDocument, ApiResponse } from '../types';
+import { DashboardStats, AnalyticsReport } from '../types';
+import { API_CONFIG, buildApiUrl } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_ANALYTICS_API_URL || 'http://localhost:8002';
+class AnalyticsService {
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = buildApiUrl('ANALYTICS_SERVICE', endpoint);
+    const token = localStorage.getItem('auth_token');
+    
+    const config: RequestInit = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+      },
+      ...options,
+    };
 
-const analyticsService = {
-  // Get dashboard overview
-  async getDashboardOverview(): Promise<AnalyticsOverview> {
-    const response = await axios.get(`${API_BASE_URL}/dashboard/overview`);
-    return response.data;
-  },
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
 
-  // Get trend data
-  async getTrends(timeRange: string = '6months'): Promise<TrendData[]> {
-    const response = await axios.get(`${API_BASE_URL}/trends?timeRange=${timeRange}`);
-    return response.data;
-  },
-
-  // Get category distribution
-  async getCategoryDistribution(): Promise<CategoryData[]> {
-    const response = await axios.get(`${API_BASE_URL}/categories/distribution`);
-    return response.data;
-  },
-
-  // Get top documents
-  async getTopDocuments(limit: number = 10): Promise<TopDocument[]> {
-    const response = await axios.get(`${API_BASE_URL}/documents/top?limit=${limit}`);
-    return response.data;
-  },
-
-  // Get user activity
-  async getUserActivity(timeRange: string = '1month'): Promise<any[]> {
-    const response = await axios.get(`${API_BASE_URL}/users/activity?timeRange=${timeRange}`);
-    return response.data;
-  },
-
-  // Get document statistics
-  async getDocumentStats(timeRange: string = '1month'): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/documents/stats?timeRange=${timeRange}`);
-    return response.data;
-  },
-
-  // Get compliance report
-  async getComplianceReport(timeRange: string = '1month'): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/compliance/report?timeRange=${timeRange}`);
-    return response.data;
-  },
-
-  // Get risk assessment
-  async getRiskAssessment(): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/risk/assessment`);
-    return response.data;
-  },
-
-  // Get real-time metrics
-  async getRealTimeMetrics(): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/metrics/realtime`);
-    return response.data;
-  },
-
-  // Generate custom report
-  async generateCustomReport(params: {
-    metrics: string[];
-    timeRange: string;
-    filters?: any;
-    format?: 'pdf' | 'excel' | 'csv';
-  }): Promise<Blob> {
-    const response = await axios.post(`${API_BASE_URL}/reports/custom`, params, {
-      responseType: 'blob'
-    });
-    return response.data;
-  },
-
-  // Get audit logs
-  async getAuditLogs(
-    page: number = 1,
-    limit: number = 50,
-    filters?: {
-      userId?: string;
-      action?: string;
-      dateFrom?: string;
-      dateTo?: string;
+      return await response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
     }
-  ): Promise<any> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      ...(filters?.userId && { userId: filters.userId }),
-      ...(filters?.action && { action: filters.action }),
-      ...(filters?.dateFrom && { dateFrom: filters.dateFrom }),
-      ...(filters?.dateTo && { dateTo: filters.dateTo })
-    });
-
-    const response = await axios.get(`${API_BASE_URL}/audit/logs?${params}`);
-    return response.data;
-  },
-
-  // Get system health
-  async getSystemHealth(): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/system/health`);
-    return response.data;
-  },
-
-  // Get performance metrics
-  async getPerformanceMetrics(timeRange: string = '1hour'): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/performance/metrics?timeRange=${timeRange}`);
-    return response.data;
-  },
-
-  // Get user engagement
-  async getUserEngagement(timeRange: string = '1month'): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/users/engagement?timeRange=${timeRange}`);
-    return response.data;
-  },
-
-  // Get document usage patterns
-  async getDocumentUsagePatterns(timeRange: string = '1month'): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/documents/usage-patterns?timeRange=${timeRange}`);
-    return response.data;
-  },
-
-  // Export analytics data
-  async exportAnalyticsData(
-    dataType: string,
-    timeRange: string,
-    format: 'csv' | 'excel' | 'json' = 'csv'
-  ): Promise<Blob> {
-    const response = await axios.get(`${API_BASE_URL}/export/${dataType}`, {
-      params: { timeRange, format },
-      responseType: 'blob'
-    });
-    return response.data;
-  },
-
-  // Get predictive analytics
-  async getPredictiveAnalytics(): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/predictive/analytics`);
-    return response.data;
-  },
-
-  // Get anomaly detection
-  async getAnomalyDetection(): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/anomaly/detection`);
-    return response.data;
   }
-};
 
-export default analyticsService;
+  async getDashboardStats(): Promise<DashboardStats> {
+    try {
+      // Test modu - backend olmadan mock data döndür
+      const mockStats: DashboardStats = {
+        total_documents: 1250,
+        total_users: 45,
+        total_downloads: 3420,
+        total_views: 15680,
+        popular_categories: [
+          { name: 'Güvenlik', count: 156 },
+          { name: 'Kalite', count: 89 },
+          { name: 'Üretim', count: 67 },
+          { name: 'İnsan Kaynakları', count: 43 }
+        ]
+      };
+      
+      // Simüle edilmiş gecikme
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      return mockStats;
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+      throw error;
+    }
+  }
+
+  async getReports(): Promise<AnalyticsReport[]> {
+    try {
+      const response = await this.request<{ reports: AnalyticsReport[] }>('/analytics/reports');
+      return response.reports;
+    } catch (error) {
+      console.error('Failed to fetch reports:', error);
+      throw error;
+    }
+  }
+
+  async generateReport(type: string, format: string = 'json'): Promise<any> {
+    try {
+      const response = await this.request(`/reports/${type}?format=${format}`, {
+        method: 'POST',
+      });
+      return response;
+    } catch (error) {
+      console.error('Failed to generate report:', error);
+      throw error;
+    }
+  }
+
+  async getUserActivity(days: number = 30): Promise<any> {
+    try {
+      const response = await this.request(`/analytics/user-activity?days=${days}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch user activity:', error);
+      throw error;
+    }
+  }
+
+  async getDocumentStats(): Promise<any> {
+    try {
+      const response = await this.request('/analytics/document-stats');
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch document stats:', error);
+      throw error;
+    }
+  }
+
+  async getComplianceAnalytics(startDate?: string, endDate?: string): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      
+      const response = await this.request(`/analytics/compliance?${params.toString()}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch compliance analytics:', error);
+      throw error;
+    }
+  }
+
+  async getRiskAssessment(): Promise<any> {
+    try {
+      const response = await this.request('/analytics/risk-assessment');
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch risk assessment:', error);
+      throw error;
+    }
+  }
+
+  async getTrends(metric: string, period: string = 'month'): Promise<any> {
+    try {
+      const response = await this.request(`/analytics/trends?metric=${metric}&period=${period}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch trends:', error);
+      throw error;
+    }
+  }
+
+  async getRealTimeMetrics(): Promise<any> {
+    try {
+      const response = await this.request('/metrics/real-time');
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch real-time metrics:', error);
+      throw error;
+    }
+  }
+
+  async getMetricsSummary(period: string = 'day'): Promise<any> {
+    try {
+      const response = await this.request(`/metrics/summary?period=${period}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch metrics summary:', error);
+      throw error;
+    }
+  }
+}
+
+export const analyticsService = new AnalyticsService();

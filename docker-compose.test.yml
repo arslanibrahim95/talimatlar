@@ -1,0 +1,254 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Testing
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: claude-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-safety_test}
+      POSTGRES_USER: ${POSTGRES_USER:-safety_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - claude-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U safety_admin -d safety_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache for Testing
+  redis-test:
+    image: redis:7.4-alpine
+    container_name: claude-redis-test
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_test_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - claude-test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Auth Service for Testing
+  auth-service-test:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: claude-auth-test
+    restart: unless-stopped
+    ports:
+      - "8004:8004"
+    environment:
+      - NODE_ENV=test
+      - PORT=8004
+      - POSTGRES_HOST=postgres-test
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-safety_test}
+      - POSTGRES_USER=${POSTGRES_USER:-safety_admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis-test
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-test-secret-key}
+    networks:
+      - claude-test-network
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/auth/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Analytics Service for Testing
+  analytics-service-test:
+    build:
+      context: ./services/analytics-service
+      dockerfile: Dockerfile.simple
+    container_name: claude-analytics-test
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-safety_admin}:${POSTGRES_PASSWORD}@postgres-test:5432/${POSTGRES_DB:-safety_test}
+      - REDIS_URL=redis://redis-test:6379
+      - NODE_ENV=test
+    networks:
+      - claude-test-network
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/analytics/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Instruction Service for Testing
+  instruction-service-test:
+    build:
+      context: ./instruction-service
+      dockerfile: Dockerfile
+    container_name: claude-instruction-test
+    ports:
+      - "8005:8005"
+    environment:
+      - NODE_ENV=test
+      - PORT=8005
+      - POSTGRES_HOST=postgres-test
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-safety_test}
+      - POSTGRES_USER=${POSTGRES_USER:-safety_admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis-test
+      - REDIS_PORT=6379
+    networks:
+      - claude-test-network
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/instructions/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # AI Service for Testing
+  ai-service-test:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: claude-ai-test
+    ports:
+      - "8006:8006"
+    environment:
+      - NODE_ENV=test
+      - PORT=8006
+      - POSTGRES_HOST=postgres-test
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-safety_test}
+      - POSTGRES_USER=${POSTGRES_USER:-safety_admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis-test
+      - REDIS_PORT=6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-test-key}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY:-test-key}
+    networks:
+      - claude-test-network
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # API Gateway for Testing
+  api-gateway-test:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: claude-api-gateway-test
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=test
+      - JWT_SECRET=${JWT_SECRET:-test-secret-key}
+      - AUTH_SERVICE_URL=http://auth-service-test:8004
+      - ANALYTICS_SERVICE_URL=http://analytics-service-test:8003
+      - INSTRUCTION_SERVICE_URL=http://instruction-service-test:8005
+      - AI_SERVICE_URL=http://ai-service-test:8006
+      - LOG_LEVEL=DEBUG
+    networks:
+      - claude-test-network
+    depends_on:
+      - auth-service-test
+      - analytics-service-test
+      - instruction-service-test
+      - ai-service-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/gateway/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Frontend for Testing
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: claude-frontend-test
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080
+      - VITE_ANALYTICS_URL=http://localhost:8003
+      - VITE_INSTRUCTION_URL=http://localhost:8005
+      - VITE_AI_URL=http://localhost:8006
+      - NODE_ENV=test
+    networks:
+      - claude-test-network
+    depends_on:
+      - api-gateway-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Test Database Setup
+  test-db-setup:
+    build:
+      context: ./database-layer
+      dockerfile: Dockerfile
+    container_name: claude-test-db-setup
+    environment:
+      - POSTGRES_HOST=postgres-test
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-safety_test}
+      - POSTGRES_USER=${POSTGRES_USER:-safety_admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - claude-test-network
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    command: ["python", "init_database.py", "--test-mode"]
+    restart: "no"
+
+volumes:
+  postgres_test_data:
+  redis_test_data:
+
+networks:
+  claude-test-network:
+    driver: bridge

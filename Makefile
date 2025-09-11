@@ -208,6 +208,47 @@ update:backend: ## Update backend dependencies
 	@echo "Updating backend dependencies..."
 	npm run update:backend
 
+# Auto-update system
+auto-update: ## Run automatic update system
+	@echo "Running automatic update system..."
+	./scripts/auto-update.sh
+
+auto-update:force: ## Force run automatic update system
+	@echo "Force running automatic update system..."
+	./scripts/auto-update.sh --force
+
+auto-update:config: ## Show auto-update configuration
+	@echo "Auto-update configuration:"
+	./scripts/auto-update.sh --config
+
+auto-update:test: ## Test auto-update configuration
+	@echo "Testing auto-update configuration..."
+	./scripts/auto-update.sh --test
+
+update:manager: ## Open interactive update manager
+	@echo "Opening interactive update manager..."
+	./scripts/update-manager.sh
+
+update:monitor: ## Start update monitoring
+	@echo "Starting update monitoring..."
+	./scripts/update-monitor.sh monitor
+
+update:report: ## Generate update report
+	@echo "Generating update report..."
+	./scripts/update-monitor.sh report
+
+update:health: ## Check system health
+	@echo "Checking system health..."
+	./scripts/update-monitor.sh health
+
+update:check: ## Check for available updates
+	@echo "Checking for available updates..."
+	./scripts/update-monitor.sh updates
+
+setup:auto-update: ## Setup auto-update service (requires sudo)
+	@echo "Setting up auto-update service..."
+	sudo ./scripts/setup-auto-update-service.sh
+
 # Development shortcuts
 dev:auth: ## Start Auth service in development mode
 	@echo "Starting Auth service in development mode..."

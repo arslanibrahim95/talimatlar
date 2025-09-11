@@ -1,0 +1,165 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Claude Talimat - Business Metrics",
+    "tags": ["claude-talimat", "business", "kpi"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "User Growth",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "users_registered_total",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Total Users"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Instructions Created",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "instructions_created_total",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Total Instructions"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Document Uploads",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "documents_uploaded_total",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Total Documents"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "QR Codes Generated",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "qr_codes_generated_total",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Total QR Codes"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "User Engagement",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(user_sessions_total[1h])",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Sessions/hour"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 6,
+        "title": "Feature Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(feature_usage_total[1h])",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Usage/hour"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        }
+      },
+      {
+        "id": 7,
+        "title": "Tenant Metrics",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "tenant_users_total",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        }
+      }
+    ],
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "refresh": "1m"
+  }
+}

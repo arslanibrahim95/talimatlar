@@ -1,0 +1,71 @@
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: claude-metrics
+  namespace: default
+spec:
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      tagOverrides:
+        request_protocol:
+          value: "http"
+        response_code:
+          value: "200"
+---
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: claude-tracing
+  namespace: default
+spec:
+  tracing:
+  - providers:
+    - name: jaeger
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      providers:
+      - name: jaeger
+        overrides:
+        - match:
+            metric: ALL_METRICS
+          tagOverrides:
+            request_protocol:
+              value: "http"
+---
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: claude-access-logs
+  namespace: default
+spec:
+  accessLogging:
+  - providers:
+    - name: otel
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      providers:
+      - name: otel
+        overrides:
+        - match:
+            metric: ALL_METRICS
+          disabled: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-config
+  namespace: default
+data:
+  jaeger.yaml: |
+    sampling:
+      type: const
+      param: 1
+    reporter:
+      logSpans: true
+      localAgentHostPort: jaeger:14268

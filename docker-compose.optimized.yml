@@ -1,0 +1,242 @@
+# =============================================================================
+# OPTIMIZED DOCKER COMPOSE CONFIGURATION
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Optimized
+  postgres:
+    image: postgres:15-alpine
+    container_name: claude-postgres-opt
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: safety_production
+      POSTGRES_USER: safety_admin
+      POSTGRES_PASSWORD: strong_password_here
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U safety_admin -d safety_production"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=512MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # Redis Cache - Optimized
+  redis:
+    image: redis:7.2-alpine
+    container_name: claude-redis-opt
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # AI Service - Optimized
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: claude-ai-opt
+    restart: unless-stopped
+    ports:
+      - "8006:8006"
+    environment:
+      - NODE_ENV=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    networks:
+      - claude-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Instruction Service - Optimized
+  instruction-service:
+    build:
+      context: ./instruction-service
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: claude-instruction-opt
+    restart: unless-stopped
+    ports:
+      - "8005:8005"
+    environment:
+      - NODE_ENV=production
+      - PORT=8005
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    networks:
+      - claude-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Frontend - Optimized
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: claude-frontend-opt
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=http://localhost:8004
+      - VITE_ANALYTICS_URL=http://localhost:8003
+      - VITE_INSTRUCTION_URL=http://localhost:8005
+      - VITE_AI_URL=http://localhost:8006
+    networks:
+      - claude-network
+    depends_on:
+      - ai-service
+      - instruction-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # Nginx Reverse Proxy - Optimized
+  nginx:
+    image: nginx:1.24-alpine
+    container_name: claude-nginx-opt
+    restart: unless-stopped
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - "8080:80"
+      - "8443:443"
+    networks:
+      - claude-network
+    depends_on:
+      - frontend
+      - ai-service
+      - instruction-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.1'
+        reservations:
+          memory: 64M
+          cpus: '0.05'
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  claude-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

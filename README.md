@@ -58,11 +58,11 @@ npm run dev
 ```
 
 ### Erişim
-- **Frontend**: http://localhost:3000
+- **Frontend**: http://localhyost:3000
 - **Auth API**: http://localhost:8001
 - **Document API**: http://localhost:8002
 - **Analytics API**: http://localhost:8003
-- **Notification API**: http://localhost:8004
+- **Notification API**: http://localhost:8003
 
 ## 📁 Proje Yapısı
 

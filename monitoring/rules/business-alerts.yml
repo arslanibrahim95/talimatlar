@@ -1,0 +1,176 @@
+# =============================================================================
+# BUSINESS ALERTING RULES FOR CLAUDE TALİMAT
+# =============================================================================
+
+groups:
+  - name: claude-talimat.business
+    rules:
+      # User Growth Alerts
+      - alert: UserGrowthStagnant
+        expr: rate(users_registered_total[24h]) < 1
+        for: 24h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "User growth has stagnated"
+          description: "No new user registrations in the last 24 hours"
+
+      - alert: UserGrowthDecline
+        expr: rate(users_registered_total[7d]) < rate(users_registered_total[14d] offset 7d) * 0.5
+        for: 1h
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "Significant decline in user growth"
+          description: "User registration rate has dropped by more than 50% compared to last week"
+
+      # Engagement Alerts
+      - alert: LowUserEngagement
+        expr: rate(user_sessions_total[1h]) < 5
+        for: 2h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Low user engagement"
+          description: "User session rate is below 5 sessions per hour"
+
+      - alert: HighUserEngagement
+        expr: rate(user_sessions_total[1h]) > 100
+        for: 30m
+        labels:
+          severity: info
+          category: business
+        annotations:
+          summary: "High user engagement"
+          description: "User session rate is above 100 sessions per hour"
+
+      # Feature Usage Alerts
+      - alert: FeatureUsageDrop
+        expr: rate(feature_usage_total[1h]) < rate(feature_usage_total[1h] offset 1d) * 0.3
+        for: 1h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Feature usage has dropped significantly"
+          description: "Feature usage is 70% lower than yesterday"
+
+      # Content Creation Alerts
+      - alert: LowContentCreation
+        expr: rate(instructions_created_total[1h]) < 1
+        for: 4h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Low content creation activity"
+          description: "No new instructions created in the last 4 hours"
+
+      - alert: HighContentCreation
+        expr: rate(instructions_created_total[1h]) > 20
+        for: 30m
+        labels:
+          severity: info
+          category: business
+        annotations:
+          summary: "High content creation activity"
+          description: "More than 20 instructions created per hour"
+
+      # Document Management Alerts
+      - alert: DocumentUploadIssues
+        expr: rate(document_upload_errors_total[1h]) > rate(document_uploads_total[1h]) * 0.1
+        for: 30m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "High document upload error rate"
+          description: "Document upload error rate is above 10%"
+
+      # AI Service Alerts
+      - alert: AIServiceHighUsage
+        expr: rate(ai_requests_total[1h]) > 1000
+        for: 30m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "AI service experiencing high usage"
+          description: "AI requests are above 1000 per hour"
+
+      - alert: AIServiceLowUsage
+        expr: rate(ai_requests_total[1h]) < 10
+        for: 2h
+        labels:
+          severity: info
+          category: business
+        annotations:
+          summary: "AI service low usage"
+          description: "AI requests are below 10 per hour"
+
+      # QR Code Generation Alerts
+      - alert: QRCodeGenerationSpike
+        expr: rate(qr_codes_generated_total[1h]) > 100
+        for: 30m
+        labels:
+          severity: info
+          category: business
+        annotations:
+          summary: "High QR code generation activity"
+          description: "More than 100 QR codes generated per hour"
+
+      # Tenant Management Alerts
+      - alert: TenantLimitReached
+        expr: tenant_users_total / tenant_max_users_total > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Tenant approaching user limit"
+          description: "Tenant {{ $labels.tenant_id }} is at 90% of user limit"
+
+      - alert: TenantStorageLimitReached
+        expr: tenant_storage_used_bytes / tenant_storage_limit_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Tenant approaching storage limit"
+          description: "Tenant {{ $labels.tenant_id }} is at 90% of storage limit"
+
+      # Business KPIs
+      - alert: LowDailyActiveUsers
+        expr: daily_active_users < 10
+        for: 1h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Low daily active users"
+          description: "Daily active users is below 10"
+
+      - alert: HighChurnRate
+        expr: rate(users_deactivated_total[7d]) / rate(users_registered_total[7d]) > 0.2
+        for: 1h
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "High user churn rate"
+          description: "User churn rate is above 20%"
+
+      # Revenue Alerts (if applicable)
+      - alert: SubscriptionRenewalIssues
+        expr: rate(subscription_renewal_failures_total[1h]) > 5
+        for: 30m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "High subscription renewal failure rate"
+          description: "More than 5 subscription renewal failures per hour"

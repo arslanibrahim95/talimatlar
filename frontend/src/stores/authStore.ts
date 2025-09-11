@@ -1,154 +1,139 @@
-import React from 'react'
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { authService } from '@/services/authService'
-
-export interface User {
-  id: string
-  phone: string
-  email?: string
-  role: 'admin' | 'manager' | 'employee'
-  tenantId?: string
-  firstName?: string
-  lastName?: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
+import { create } from 'zustand';
+import { authService } from '../services/authService';
+import { User, LoginCredentials, RegisterData } from '../types';
+import { ErrorHandler } from '../utils/errorHandler';
 
 interface AuthState {
-  user: User | null
-  token: string | null
-  isLoading: boolean
-  isAuthenticated: boolean
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  
+  // Actions
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
+  register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  getCurrentUser: () => Promise<void>;
+  clearError: () => void;
 }
 
-interface AuthActions {
-  login: (phone: string, password: string) => Promise<void>
-  loginWithOTP: (phone: string, otp: string) => Promise<void>
-  register: (userData: RegisterData) => Promise<void>
-  logout: () => void
-  refreshToken: () => Promise<void>
-  updateUser: (userData: Partial<User>) => void
-  setLoading: (loading: boolean) => void
-}
+export const useAuth = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: true, // Başlangıçta true olmalı
+  error: null,
 
-interface RegisterData {
-  phone: string
-  email?: string
-  password: string
-  firstName?: string
-  lastName?: string
-}
+  login: async (_credentials: LoginCredentials): Promise<{ success: boolean; error?: string }> => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      // Test modu - herhangi bir email/şifre ile giriş yapabilir
+      const { loginAsTestUser } = await import('../utils/testUser');
+      const response = loginAsTestUser();
+      
+      set({
+        user: response.user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null
+      });
 
-type AuthStore = AuthState & AuthActions
+      return { success: true };
+    } catch (error: any) {
+      const errorMessage = ErrorHandler.handleApiError(error);
+      ErrorHandler.logError(error, 'AuthStore.login');
+      
+      set({ 
+        isLoading: false, 
+        error: errorMessage,
+        isAuthenticated: false,
+        user: null
+      });
+      return { success: false, error: errorMessage };
+    }
+  },
 
-export const useAuth = create<AuthStore>()(
-  persist(
-    (set, get) => ({
-      // State
-      user: null,
-      token: null,
-      isLoading: false,
-      isAuthenticated: false,
+  register: async (_data: RegisterData): Promise<{ success: boolean; error?: string }> => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      // Test modu - backend olmadan test kullanıcısı oluştur
+      const { createTestUser } = await import('../utils/testUser');
+      const testUser = createTestUser();
+      
+      set({
+        user: testUser,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null
+      });
 
-      // Actions
-      login: async (phone: string, password: string) => {
-        set({ isLoading: true })
-        try {
-          const response = await authService.login(phone, password)
-          set({
-            user: response.user,
-            token: response.token,
-            isAuthenticated: true,
-            isLoading: false,
-          })
-        } catch (error) {
-          set({ isLoading: false })
-          throw error
-        }
-      },
+      return { success: true };
+    } catch (error: any) {
+      const errorMessage = ErrorHandler.handleApiError(error);
+      ErrorHandler.logError(error, 'AuthStore.register');
+      
+      set({ 
+        isLoading: false, 
+        error: errorMessage,
+        isAuthenticated: false,
+        user: null
+      });
+      return { success: false, error: errorMessage };
+    }
+  },
 
-      loginWithOTP: async (phone: string, otp: string) => {
-        set({ isLoading: true })
-        try {
-          const response = await authService.verifyOTP(phone, otp)
-          set({
-            user: response.user,
-            token: response.token,
-            isAuthenticated: true,
-            isLoading: false,
-          })
-        } catch (error) {
-          set({ isLoading: false })
-          throw error
-        }
-      },
+  logout: async (): Promise<void> => {
+    try {
+      // Test kullanıcısı temizleme
+      const { clearTestUser } = await import('../utils/testUser');
+      clearTestUser();
+      
+      // Normal logout da dene
+      await authService.logout();
+    } catch (error) {
+      ErrorHandler.logError(error, 'AuthStore.logout');
+    } finally {
+      set({
+        user: null,
+        isAuthenticated: false,
+        error: null
+      });
+    }
+  },
 
-      register: async (userData: RegisterData) => {
-        set({ isLoading: true })
-        try {
-          const response = await authService.register(userData)
-          set({
-            user: response.user,
-            token: response.token,
-            isAuthenticated: true,
-            isLoading: false,
-          })
-        } catch (error) {
-          set({ isLoading: false })
-          throw error
-        }
-      },
-
-      logout: () => {
+  getCurrentUser: async (): Promise<void> => {
+    try {
+      set({ isLoading: true });
+      
+      // Test kullanıcısı kontrolü
+      const { getTestUser, isTestUser } = await import('../utils/testUser');
+      const testUser = getTestUser();
+      
+      if (isTestUser() && testUser) {
+        set({
+          user: testUser,
+          isAuthenticated: true,
+          isLoading: false
+        });
+      } else {
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
-          isLoading: false,
-        })
-        // Clear any stored data
-        localStorage.removeItem('auth-storage')
-      },
-
-      refreshToken: async () => {
-        const { token } = get()
-        if (!token) return
-
-        try {
-          const response = await authService.refreshToken(token)
-          set({
-            token: response.token,
-            user: response.user,
-          })
-        } catch (error) {
-          // If refresh fails, logout the user
-          get().logout()
-          throw error
-        }
-      },
-
-      updateUser: (userData: Partial<User>) => {
-        const { user } = get()
-        if (user) {
-          set({
-            user: { ...user, ...userData },
-          })
-        }
-      },
-
-      setLoading: (loading: boolean) => {
-        set({ isLoading: loading })
-      },
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-        token: state.token,
-        isAuthenticated: state.isAuthenticated,
-      }),
+          isLoading: false
+        });
+      }
+    } catch (error) {
+      ErrorHandler.logError(error, 'AuthStore.getCurrentUser');
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false
+      });
     }
-  )
-)
+  },
+
+  clearError: (): void => {
+    set({ error: null });
+  }
+}));

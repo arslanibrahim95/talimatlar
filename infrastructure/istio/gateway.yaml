@@ -1,0 +1,110 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: claude-gateway
+  namespace: default
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "claude.local"
+    - "localhost"
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - "claude.local"
+    - "localhost"
+    tls:
+      mode: SIMPLE
+      credentialName: claude-tls-cert
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: claude-frontend
+  namespace: default
+spec:
+  hosts:
+  - "claude.local"
+  - "localhost"
+  gateways:
+  - claude-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: claude-frontend
+        port:
+          number: 3000
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: claude-api
+  namespace: default
+spec:
+  hosts:
+  - "claude.local"
+  - "localhost"
+  gateways:
+  - claude-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/auth
+    route:
+    - destination:
+        host: claude-auth
+        port:
+          number: 8004
+  - match:
+    - uri:
+        prefix: /api/analytics
+    route:
+    - destination:
+        host: claude-analytics
+        port:
+          number: 8003
+  - match:
+    - uri:
+        prefix: /api/documents
+    route:
+    - destination:
+        host: claude-document
+        port:
+          number: 8007
+  - match:
+    - uri:
+        prefix: /api/instructions
+    route:
+    - destination:
+        host: claude-instruction
+        port:
+          number: 8005
+  - match:
+    - uri:
+        prefix: /api/ai
+    route:
+    - destination:
+        host: claude-ai
+        port:
+          number: 8006
+  - match:
+    - uri:
+        prefix: /api/notifications
+    route:
+    - destination:
+        host: claude-notification
+        port:
+          number: 8008

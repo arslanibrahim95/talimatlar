@@ -1,0 +1,12 @@
+FROM denoland/deno:1.37
+
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 8004
+
+# Run the application
+CMD ["deno", "run", "--allow-net", "--allow-env", "main.ts"]

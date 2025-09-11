@@ -1,0 +1,238 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kiali
+  namespace: istio-system
+  labels:
+    app: kiali
+    chart: kiali
+    heritage: Tiller
+    release: istio
+data:
+  config.yaml: |
+    istio_namespace: istio-system
+    server:
+      port: 20001
+      web_root: /kiali
+    external_services:
+      prometheus:
+        url: http://claude-prometheus:9090
+      grafana:
+        url: http://claude-grafana:3000
+      tracing:
+        url: http://claude-jaeger:16686
+    auth:
+      strategy: anonymous
+    deployment:
+      view_only_mode: false
+    login_token:
+      signing_key: "kiali-signing-key-2023"
+    identity:
+      cert_file: ""
+      private_key_file: ""
+    istio_component_namespaces:
+      prometheus: default
+      grafana: default
+      tracing: default
+    kubernetes_config:
+      cache_duration: 300
+      cache_enabled: true
+      cache_istio_types:
+        - DestinationRule
+        - EnvoyFilter
+        - Gateway
+        - ServiceEntry
+        - Sidecar
+        - VirtualService
+        - WorkloadEntry
+        - WorkloadGroup
+      cache_namespaces:
+        - default
+      cache_token_namespace_duration: 300
+      exclude_secrets: true
+      istio_api_enabled: true
+      istio_label_app_version: version
+      istio_namespace: istio-system
+      istio_sidecar_annotation: sidecar.istio.io/inject
+      istio_sidecar_injection_annotation: sidecar.istio.io/inject
+      istio_sidecar_injection_label_name: istio-injection
+      istio_sidecar_injection_label_value: enabled
+      istio_sidecar_injection_label_value_strict: strict
+      istio_workload_selector_labels:
+        - app
+        - version
+      kiali_feature_flags:
+        certificates_information_indicator:
+          enabled: true
+        istio_injection_action: true
+        istio_upgrade_action: false
+        ui_defaults:
+          graph:
+            find_options:
+            - description: "Find: slow edges (>1s)"
+              expression: "rt > 1000"
+            - description: "Find: error rate > 0.1"
+              expression: "er > 0.1"
+            - description: "Find: throughput < 1000"
+              expression: "throughput < 1000"
+            hide:
+              - circuit_breakers
+              - missing_sidecars
+              - security_policy_display
+              - service_entries
+              - sidecars
+              - traffic_policy
+            layout:
+              - name: "Cytoscape Dagre"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Cola"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Breadthfirst"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Concentric"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+            show:
+              - circuit_breakers
+              - missing_sidecars
+              - security_policy_display
+              - service_entries
+              - sidecars
+              - traffic_policy
+            traffic:
+              grpc: "requests"
+              http: "requests"
+              tcp: "bytes"
+        multi_cluster:
+          enabled: false
+        ui_defaults:
+          graph:
+            find_options:
+            - description: "Find: slow edges (>1s)"
+              expression: "rt > 1000"
+            - description: "Find: error rate > 0.1"
+              expression: "er > 0.1"
+            - description: "Find: throughput < 1000"
+              expression: "throughput < 1000"
+            hide:
+              - circuit_breakers
+              - missing_sidecars
+              - security_policy_display
+              - service_entries
+              - sidecars
+              - traffic_policy
+            layout:
+              - name: "Cytoscape Dagre"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Cola"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Breadthfirst"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Concentric"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+            show:
+              - circuit_breakers
+              - missing_sidecars
+              - security_policy_display
+              - service_entries
+              - sidecars
+              - traffic_policy
+            traffic:
+              grpc: "requests"
+              http: "requests"
+              tcp: "bytes"
+        ui_defaults:
+          graph:
+            find_options:
+            - description: "Find: slow edges (>1s)"
+              expression: "rt > 1000"
+            - description: "Find: error rate > 0.1"
+              expression: "er > 0.1"
+            - description: "Find: throughput < 1000"
+              expression: "throughput < 1000"
+            hide:
+              - circuit_breakers
+              - missing_sidecars
+              - security_policy_display
+              - service_entries
+              - sidecars
+              - traffic_policy
+            layout:
+              - name: "Cytoscape Dagre"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Cola"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Breadthfirst"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+              - name: "Cytoscape Concentric"
+                class: "CytoscapeGraph"
+                rankdir: "TB"
+                nodeSpacing: 100
+                edgeLength: 100
+                ranksep: 100
+                nodesep: 100
+            show:
+              - circuit_breakers
+              - missing_sidecars
+              - security_policy_display
+              - service_entries
+              - sidecars
+              - traffic_policy
+            traffic:
+              grpc: "requests"
+              http: "requests"
+              tcp: "bytes"

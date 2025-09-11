@@ -1,0 +1,93 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Claude Talimat - Docker Metrics",
+    "tags": ["claude-talimat", "docker", "containers"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Container CPU Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{name=~\"claude-.*\"}[5m]) * 100",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "CPU %",
+            "min": 0,
+            "max": 100
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Container Memory Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes{name=~\"claude-.*\"} / 1024 / 1024",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Memory (MB)",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Container Network I/O",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(container_network_receive_bytes_total{name=~\"claude-.*\"}[5m])",
+            "legendFormat": "{{name}} - Receive"
+          },
+          {
+            "expr": "rate(container_network_transmit_bytes_total{name=~\"claude-.*\"}[5m])",
+            "legendFormat": "{{name}} - Transmit"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Bytes/sec",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Container Restart Count",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "increase(container_start_time_seconds{name=~\"claude-.*\"}[1h])",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Restarts",
+            "min": 0
+          }
+        ]
+      }
+    ]
+  }
+}

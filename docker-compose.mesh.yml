@@ -1,0 +1,318 @@
+version: '3.8'
+
+services:
+  # Istio Control Plane
+  istio-pilot:
+    image: docker.io/istio/pilot:1.20.0
+    container_name: claude-istio-pilot
+    restart: unless-stopped
+    ports:
+      - "15010:15010"
+      - "15011:15011"
+      - "15012:15012"
+    environment:
+      - PILOT_ENABLE_WORKLOAD_ENTRY_AUTOREGISTRATION=true
+      - PILOT_ENABLE_CROSS_CLUSTER_WORKLOAD_ENTRY=true
+    networks:
+      - claude-mesh
+    volumes:
+      - ./infrastructure/istio/istio-config.yaml:/etc/istio/config.yaml:ro
+
+  # Istio Ingress Gateway
+  istio-ingressgateway:
+    image: docker.io/istio/proxyv2:1.20.0
+    container_name: claude-istio-ingress
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+      - "443:8443"
+      - "15021:15021"
+    environment:
+      - ISTIO_META_ROUTER_MODE=sni-dnat
+    networks:
+      - claude-mesh
+    depends_on:
+      - istio-pilot
+
+  # Jaeger Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: claude-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - claude-mesh
+
+  # Kiali Service Mesh UI
+  kiali:
+    image: quay.io/kiali/kiali:v1.73
+    container_name: claude-kiali
+    restart: unless-stopped
+    ports:
+      - "20001:20001"
+    environment:
+      - KIALI_CONFIGURATION_FILE=/kiali-configuration/conf/kiali.yaml
+    networks:
+      - claude-mesh
+    volumes:
+      - ./infrastructure/istio/kiali-config.yaml:/kiali-configuration/conf/kiali.yaml:ro
+
+  # PostgreSQL Database (with Istio sidecar)
+  postgres:
+    image: postgres:16-alpine
+    container_name: claude-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-safety_production}
+      POSTGRES_USER: ${POSTGRES_USER:-safety_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - claude-mesh
+    labels:
+      - "istio.io/rev=default"
+
+  # Redis Cache (with Istio sidecar)
+  redis:
+    image: redis:7.4-alpine
+    container_name: claude-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - claude-mesh
+    labels:
+      - "istio.io/rev=default"
+
+  # Auth Service (with Istio sidecar)
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: claude-auth
+    restart: unless-stopped
+    ports:
+      - "8004:8004"
+    environment:
+      - NODE_ENV=development
+      - PORT=8004
+    networks:
+      - claude-mesh
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "istio.io/rev=default"
+      - "app=claude-auth"
+      - "version=web"
+
+  # Analytics Service (with Istio sidecar)
+  analytics-service:
+    build:
+      context: ./services/analytics-service
+      dockerfile: Dockerfile.simple
+    container_name: claude-analytics
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-safety_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-safety_production}
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    networks:
+      - claude-mesh
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "istio.io/rev=default"
+      - "app=claude-analytics"
+
+  # Document Service (with Istio sidecar)
+  document-service:
+    build:
+      context: ./services/document-service
+      dockerfile: Dockerfile.simple
+    container_name: claude-document
+    ports:
+      - "8007:8007"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-safety_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-safety_production}
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    networks:
+      - claude-mesh
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "istio.io/rev=default"
+      - "app=claude-document"
+
+  # Instruction Service (with Istio sidecar)
+  instruction-service:
+    build:
+      context: ./instruction-service
+      dockerfile: Dockerfile
+    container_name: claude-instruction
+    ports:
+      - "8005:8005"
+    environment:
+      - NODE_ENV=development
+      - PORT=8005
+    networks:
+      - claude-mesh
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "istio.io/rev=default"
+      - "app=claude-instruction"
+
+  # AI Service (with Istio sidecar)
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: claude-ai
+    ports:
+      - "8006:8006"
+    environment:
+      - NODE_ENV=development
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
+    networks:
+      - claude-mesh
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "istio.io/rev=default"
+      - "app=claude-ai"
+      - "version=v1"
+
+  # Notification Service (with Istio sidecar)
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: claude-notification
+    ports:
+      - "8008:8008"
+    environment:
+      - NODE_ENV=development
+      - PORT=8008
+    networks:
+      - claude-mesh
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "istio.io/rev=default"
+      - "app=claude-notification"
+
+  # Frontend (with Istio sidecar)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: claude-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8004
+      - VITE_ANALYTICS_URL=http://localhost:8003
+      - VITE_DOCUMENT_URL=http://localhost:8007
+      - VITE_INSTRUCTION_URL=http://localhost:8005
+      - VITE_AI_URL=http://localhost:8006
+      - VITE_NOTIFICATION_URL=http://localhost:8008
+    networks:
+      - claude-mesh
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - auth-service
+      - analytics-service
+    labels:
+      - "istio.io/rev=default"
+      - "app=claude-frontend"
+
+  # Prometheus with Istio metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: claude-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - claude-mesh
+    labels:
+      - "istio.io/rev=default"
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: claude-grafana
+    restart: unless-stopped
+    ports:
+      - "3004:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - claude-mesh
+    labels:
+      - "istio.io/rev=default"
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  claude-mesh:
+    driver: bridge
+    labels:
+      - "istio.io/rev=default"

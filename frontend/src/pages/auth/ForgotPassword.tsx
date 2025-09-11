@@ -22,7 +22,7 @@ const ForgotPassword: React.FC = () => {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
+  const onSubmit = async (_data: ForgotPasswordFormData) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -117,6 +117,13 @@ const ForgotPassword: React.FC = () => {
             </div>
           </div>
         </form>
+
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            © 2024 Claude Talimat. Tüm hakları saklıdır.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,16 @@ import { config } from '../config.ts';
 import { logger } from '../utils/logger.ts';
 import { AuthenticationError, AuthorizationError } from './error.ts';
 import { Database } from '../database/database.ts';
+import { crypto } from 'crypto';
+
+// Helper function to hash JWT tokens
+async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hash));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 export interface AuthenticatedContext extends Context {
   user?: {
@@ -44,9 +54,10 @@ export async function authenticate(ctx: AuthenticatedContext, next: Next): Promi
     if (pool) {
       const client = await pool.connect();
       try {
+        const tokenHash = await hashToken(token);
         const result = await client.queryObject(
           'SELECT user_id, is_active FROM user_sessions WHERE token_hash = $1 AND expires_at > NOW() AND is_active = true',
-          [token] // In production, you should hash the token
+          [tokenHash]
         );
         
         if (result.rows.length === 0) {

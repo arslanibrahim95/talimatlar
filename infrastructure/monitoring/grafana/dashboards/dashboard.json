@@ -1,14 +1,14 @@
 {
   "dashboard": {
     "id": null,
-    "title": "Claude Talimat System Dashboard",
-    "tags": ["claude", "talimat", "monitoring"],
+    "title": "Claude Talimat İş Güvenliği Sistemi Dashboard",
+    "tags": ["claude", "talimat", "monitoring", "safety", "health"],
     "style": "dark",
     "timezone": "browser",
     "panels": [
       {
         "id": 1,
-        "title": "System Overview",
+        "title": "Sistem Durumu Genel Bakış",
         "type": "stat",
         "targets": [
           {
@@ -32,7 +32,22 @@
                   "value": 1
                 }
               ]
-            }
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "text": "Çevrimdışı",
+                    "color": "red"
+                  },
+                  "1": {
+                    "text": "Çevrimiçi",
+                    "color": "green"
+                  }
+                },
+                "type": "value"
+              }
+            ]
           }
         },
         "gridPos": {
@@ -44,14 +59,49 @@
       },
       {
         "id": 2,
-        "title": "HTTP Request Rate",
-        "type": "graph",
+        "title": "HTTP İstek Oranı",
+        "type": "timeseries",
         "targets": [
           {
             "expr": "rate(http_requests_total[5m])",
             "legendFormat": "{{job}} - {{method}} {{endpoint}}"
           }
         ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "İstek/Saniye",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            }
+          }
+        },
         "gridPos": {
           "h": 8,
           "w": 12,
@@ -61,14 +111,49 @@
       },
       {
         "id": 3,
-        "title": "Response Time",
-        "type": "graph",
+        "title": "Yanıt Süresi (95. Yüzdelik)",
+        "type": "timeseries",
         "targets": [
           {
             "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
-            "legendFormat": "{{job}} - 95th percentile"
+            "legendFormat": "{{job}} - 95. yüzdelik"
           }
         ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "Saniye",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            }
+          }
+        },
         "gridPos": {
           "h": 8,
           "w": 12,
@@ -78,14 +163,49 @@
       },
       {
         "id": 4,
-        "title": "Error Rate",
-        "type": "graph",
+        "title": "Hata Oranı",
+        "type": "timeseries",
         "targets": [
           {
             "expr": "rate(http_requests_total{status=~\"4..|5..\"}[5m])",
             "legendFormat": "{{job}} - {{status}}"
           }
         ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "Hata/Saniye",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            }
+          }
+        },
         "gridPos": {
           "h": 8,
           "w": 12,
@@ -95,14 +215,49 @@
       },
       {
         "id": 5,
-        "title": "Database Connections",
-        "type": "graph",
+        "title": "Veritabanı Bağlantıları",
+        "type": "timeseries",
         "targets": [
           {
             "expr": "pg_stat_database_numbackends",
             "legendFormat": "{{datname}}"
           }
         ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "Bağlantı Sayısı",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            }
+          }
+        },
         "gridPos": {
           "h": 8,
           "w": 12,
@@ -112,19 +267,148 @@
       },
       {
         "id": 6,
-        "title": "Redis Memory Usage",
-        "type": "graph",
+        "title": "Redis Bellek Kullanımı",
+        "type": "timeseries",
         "targets": [
           {
             "expr": "redis_memory_used_bytes",
-            "legendFormat": "Redis Memory"
+            "legendFormat": "Redis Bellek"
           }
         ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "Bayt",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            }
+          }
+        },
         "gridPos": {
           "h": 8,
           "w": 12,
           "x": 12,
           "y": 16
+        }
+      },
+      {
+        "id": 7,
+        "title": "Aktif Kullanıcılar",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "claude_active_users_total",
+            "legendFormat": "Aktif Kullanıcı"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 10
+                },
+                {
+                  "color": "green",
+                  "value": 50
+                }
+              ]
+            },
+            "mappings": [],
+            "unit": "short"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 24
+        }
+      },
+      {
+        "id": 8,
+        "title": "Doküman İşlemleri",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(claude_document_operations_total[5m])",
+            "legendFormat": "{{operation}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "İşlem/Saniye",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 24
         }
       }
     ],
@@ -132,6 +416,43 @@
       "from": "now-1h",
       "to": "now"
     },
-    "refresh": "30s"
+    "refresh": "30s",
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 0,
+    "links": [],
+    "liveNow": false,
+    "panels": [],
+    "schemaVersion": 38,
+    "style": "dark",
+    "tags": ["claude", "talimat", "monitoring", "safety", "health"],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Claude Talimat İş Güvenliği Sistemi Dashboard",
+    "uid": "claude-talimat-dashboard",
+    "version": 1
   }
 }

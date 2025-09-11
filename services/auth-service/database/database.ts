@@ -98,22 +98,26 @@ export class Database {
     `;
 
     try {
-      await this.pool.queryObject(createTenantsTable);
-      await this.pool.queryObject(createUsersTable);
-      await this.pool.queryObject(createUserSessionsTable);
-      await this.pool.queryObject(createOtpCodesTable);
-      await this.pool.queryObject(createAuditLogsTable);
+      // Use client for queries
+      const client = await this.pool.connect();
+      
+      await client.queryObject(createTenantsTable);
+      await client.queryObject(createUsersTable);
+      await client.queryObject(createUserSessionsTable);
+      await client.queryObject(createOtpCodesTable);
+      await client.queryObject(createAuditLogsTable);
 
       // Create indexes
-      await this.pool.queryObject('CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);');
-      await this.pool.queryObject('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);');
-      await this.pool.queryObject('CREATE INDEX IF NOT EXISTS idx_users_tenant ON users(tenant_id);');
-      await this.pool.queryObject('CREATE INDEX IF NOT EXISTS idx_sessions_user ON user_sessions(user_id);');
-      await this.pool.queryObject('CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(token_hash);');
-      await this.pool.queryObject('CREATE INDEX IF NOT EXISTS idx_otp_phone ON otp_codes(phone);');
-      await this.pool.queryObject('CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);');
-      await this.pool.queryObject('CREATE INDEX IF NOT EXISTS idx_audit_tenant ON audit_logs(tenant_id);');
+      await client.queryObject('CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);');
+      await client.queryObject('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);');
+      await client.queryObject('CREATE INDEX IF NOT EXISTS idx_users_tenant ON users(tenant_id);');
+      await client.queryObject('CREATE INDEX IF NOT EXISTS idx_sessions_user ON user_sessions(user_id);');
+      await client.queryObject('CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(token_hash);');
+      await client.queryObject('CREATE INDEX IF NOT EXISTS idx_otp_phone ON otp_codes(phone);');
+      await client.queryObject('CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);');
+      await client.queryObject('CREATE INDEX IF NOT EXISTS idx_audit_tenant ON audit_logs(tenant_id);');
 
+      client.release();
       logger.info('Database tables created successfully');
     } catch (error) {
       logger.error('Failed to create database tables', error);

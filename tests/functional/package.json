@@ -1,0 +1,39 @@
+{
+  "name": "functional-tests",
+  "version": "1.0.0",
+  "description": "Functional test suite for Claude Talimat system",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:api": "vitest run api-functional-tests.ts",
+    "test:integration": "vitest run integration-functional-tests.ts",
+    "test:performance": "vitest run performance-functional-tests.ts",
+    "test:security": "vitest run security-functional-tests.ts",
+    "test:all": "node run-functional-tests.ts",
+    "test:report": "vitest run --reporter=html --reporter=json"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "playwright": "^1.40.0",
+    "pg": "^8.11.0",
+    "ioredis": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.10.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "testing",
+    "functional",
+    "e2e",
+    "integration",
+    "performance",
+    "security"
+  ],
+  "author": "Claude Talimat Team",
+  "license": "MIT"
+}

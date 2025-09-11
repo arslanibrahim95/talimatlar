@@ -1,287 +1,414 @@
-import React from 'react';
-import Layout from '../components/layout/Layout';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { cn } from '../utils/cn';
+import { 
+  BarChart3, 
+  Users, 
+  FileText, 
+  QrCode, 
+  Bot, 
+  Settings,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Globe,
+  Shield,
+  Database,
+  Activity
+} from 'lucide-react';
 
-// Mock data - gerçek uygulamada API'den gelecek
-const stats = [
-  {
-    title: 'Toplam Doküman',
-    value: '1,234',
-    change: '+12%',
-    changeType: 'positive',
-    icon: '📄'
-  },
-  {
-    title: 'Aktif Kullanıcı',
-    value: '89',
-    change: '+5%',
-    changeType: 'positive',
-    icon: '👥'
-  },
-  {
-    title: 'Bu Ay Yüklenen',
-    value: '45',
-    change: '+23%',
-    changeType: 'positive',
-    icon: '📤'
-  },
-  {
-    title: 'Uyumluluk Oranı',
-    value: '94%',
-    change: '+2%',
-    changeType: 'positive',
-    icon: '✅'
-  }
-];
+interface DashboardStats {
+  totalInstructions: number;
+  totalUsers: number;
+  totalDocuments: number;
+  qrCodesGenerated: number;
+  aiInteractions: number;
+  systemHealth: 'healthy' | 'warning' | 'critical';
+  activeUsers: number;
+  storageUsed: number;
+  storageLimit: number;
+}
 
-const recentDocuments = [
-  {
-    id: 1,
-    title: 'İş Güvenliği Talimatı v2.1',
-    category: 'Talimat',
-    updatedAt: '2 saat önce',
-    status: 'active'
-  },
-  {
-    id: 2,
-    title: 'Yangın Güvenliği Prosedürü',
-    category: 'Prosedür',
-    updatedAt: '1 gün önce',
-    status: 'active'
-  },
-  {
-    id: 3,
-    title: 'Kişisel Koruyucu Ekipman Listesi',
-    category: 'Liste',
-    updatedAt: '3 gün önce',
-    status: 'draft'
-  },
-  {
-    id: 4,
-    title: 'Acil Durum Planı',
-    category: 'Plan',
-    updatedAt: '1 hafta önce',
-    status: 'active'
-  }
-];
-
-const quickActions = [
-  {
-    title: 'Yeni Doküman',
-    description: 'Yeni bir doküman oluşturun',
-    icon: '📝',
-    action: 'create',
-    color: 'blue'
-  },
-  {
-    title: 'Doküman Ara',
-    description: 'Mevcut dokümanlarda arama yapın',
-    icon: '🔍',
-    action: 'search',
-    color: 'green'
-  },
-  {
-    title: 'Rapor Oluştur',
-    description: 'Analitik raporu oluşturun',
-    icon: '📊',
-    action: 'report',
-    color: 'purple'
-  },
-  {
-    title: 'Kullanıcı Ekle',
-    description: 'Yeni kullanıcı davet edin',
-    icon: '👤',
-    action: 'user',
-    color: 'orange'
-  }
-];
+interface RecentActivity {
+  id: string;
+  type: 'instruction_created' | 'user_registered' | 'document_uploaded' | 'qr_generated' | 'ai_interaction';
+  description: string;
+  timestamp: string;
+  user: string;
+  status: 'success' | 'warning' | 'error';
+}
 
 const Dashboard: React.FC = () => {
-  const handleQuickAction = (action: string) => {
-    console.log('Quick action:', action);
-    // Gerçek uygulamada navigation veya modal açma işlemleri yapılacak
+  const [stats, setStats] = useState<DashboardStats>({
+    totalInstructions: 0,
+    totalUsers: 0,
+    totalDocuments: 0,
+    qrCodesGenerated: 0,
+    aiInteractions: 0,
+    systemHealth: 'healthy',
+    activeUsers: 0,
+    storageUsed: 0,
+    storageLimit: 0
+  });
+
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API calls
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock data
+      setStats({
+        totalInstructions: 1247,
+        totalUsers: 89,
+        totalDocuments: 342,
+        qrCodesGenerated: 156,
+        aiInteractions: 2341,
+        systemHealth: 'healthy',
+        activeUsers: 23,
+        storageUsed: 2.4,
+        storageLimit: 10
+      });
+
+      setRecentActivity([
+        {
+          id: '1',
+          type: 'instruction_created',
+          description: 'Yeni güvenlik talimatı oluşturuldu',
+          timestamp: '2024-01-20T14:30:00Z',
+          user: 'Ahmet Yılmaz',
+          status: 'success'
+        },
+        {
+          id: '2',
+          type: 'user_registered',
+          description: 'Yeni kullanıcı kaydı',
+          timestamp: '2024-01-20T14:15:00Z',
+          user: 'Mehmet Demir',
+          status: 'success'
+        },
+        {
+          id: '3',
+          type: 'document_uploaded',
+          description: 'PDF doküman yüklendi',
+          timestamp: '2024-01-20T14:00:00Z',
+          user: 'Ayşe Kaya',
+          status: 'success'
+        },
+        {
+          id: '4',
+          type: 'qr_generated',
+          description: 'QR kod oluşturuldu',
+          timestamp: '2024-01-20T13:45:00Z',
+          user: 'Fatma Öz',
+          status: 'success'
+        },
+        {
+          id: '5',
+          type: 'ai_interaction',
+          description: 'AI asistan kullanıldı',
+          timestamp: '2024-01-20T13:30:00Z',
+          user: 'Ali Veli',
+          status: 'success'
+        }
+      ]);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'instruction_created':
+        return <FileText className="w-4 h-4" />;
+      case 'user_registered':
+        return <Users className="w-4 h-4" />;
+      case 'document_uploaded':
+        return <Database className="w-4 h-4" />;
+      case 'qr_generated':
+        return <QrCode className="w-4 h-4" />;
+      case 'ai_interaction':
+        return <Bot className="w-4 h-4" />;
+      default:
+        return <Activity className="w-4 h-4" />;
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'archived':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      case 'success':
+        return 'text-green-600';
+      case 'warning':
+        return 'text-yellow-600';
+      case 'error':
+        return 'text-red-600';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+        return 'text-gray-600';
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Aktif';
-      case 'draft':
-        return 'Taslak';
-      case 'archived':
-        return 'Arşivlenmiş';
+  const getHealthColor = (health: string) => {
+    switch (health) {
+      case 'healthy':
+        return 'text-green-600 bg-green-100';
+      case 'warning':
+        return 'text-yellow-600 bg-yellow-100';
+      case 'critical':
+        return 'text-red-600 bg-red-100';
       default:
-        return 'Bilinmiyor';
+        return 'text-gray-600 bg-gray-100';
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Dashboard
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Claude Talimat İş Güvenliği Yönetim Sistemi'ne hoş geldiniz
-            </p>
-          </div>
-          <div className="flex space-x-3">
-            <Button variant="outline">
-              📊 Rapor İndir
-            </Button>
-            <Button>
-              📝 Yeni Doküman
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Dashboard
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Claude Talimat İş Güvenliği Yönetim Sistemi
+          </p>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {stat.title}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {stat.value}
-                  </p>
-                </div>
-                <div className="text-3xl">{stat.icon}</div>
-              </div>
-              <div className="mt-4">
-                <span
-                  className={cn(
-                    'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
-                    stat.changeType === 'positive'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                  )}
-                >
-                  {stat.change}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                  geçen aya göre
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Hızlı İşlemler
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action, index) => (
-              <button
-                key={index}
-                onClick={() => handleQuickAction(action.action)}
-                className={cn(
-                  'p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors text-left group',
-                  `hover:bg-${action.color}-50 dark:hover:bg-${action.color}-900/20`
-                )}
-              >
-                <div className="text-2xl mb-2">{action.icon}</div>
-                <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                  {action.title}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {action.description}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Documents */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Son Güncellenen Dokümanlar
-            </h2>
-            <Button variant="outline" size="sm">
-              Tümünü Gör
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {recentDocuments.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-600 dark:text-blue-400 text-lg">📄</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      {doc.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {doc.category} • {doc.updatedAt}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span
-                    className={cn(
-                      'px-2 py-1 rounded-full text-xs font-medium',
-                      getStatusColor(doc.status)
-                    )}
-                  >
-                    {getStatusText(doc.status)}
-                  </span>
-                  <Button variant="ghost" size="sm">
-                    Görüntüle
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Activity Chart Placeholder */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Aktivite Grafiği
-          </h2>
-          <div className="h-64 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-              <p className="text-gray-600 dark:text-gray-400">
-                Grafik burada görüntülenecek
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                Gerçek verilerle doldurulacak
-              </p>
-            </div>
+        <div className="flex items-center space-x-2">
+          <div className={`px-3 py-1 rounded-full text-sm font-medium ${getHealthColor(stats.systemHealth)}`}>
+            {stats.systemHealth === 'healthy' && <CheckCircle className="w-4 h-4 mr-1 inline" />}
+            {stats.systemHealth === 'warning' && <AlertTriangle className="w-4 h-4 mr-1 inline" />}
+            {stats.systemHealth === 'critical' && <AlertTriangle className="w-4 h-4 mr-1 inline" />}
+            Sistem {stats.systemHealth === 'healthy' ? 'Sağlıklı' : stats.systemHealth === 'warning' ? 'Uyarı' : 'Kritik'}
           </div>
         </div>
       </div>
-    </Layout>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Toplam Talimat
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.totalInstructions.toLocaleString()}
+                </p>
+              </div>
+              <FileText className="w-8 h-8 text-blue-600" />
+            </div>
+            <div className="mt-4 flex items-center text-sm text-green-600">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              +12% bu ay
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Toplam Kullanıcı
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.totalUsers.toLocaleString()}
+                </p>
+              </div>
+              <Users className="w-8 h-8 text-green-600" />
+            </div>
+            <div className="mt-4 flex items-center text-sm text-green-600">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              +8% bu ay
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Toplam Doküman
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.totalDocuments.toLocaleString()}
+                </p>
+              </div>
+              <Database className="w-8 h-8 text-purple-600" />
+            </div>
+            <div className="mt-4 flex items-center text-sm text-green-600">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              +15% bu ay
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  QR Kodlar
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.qrCodesGenerated.toLocaleString()}
+                </p>
+              </div>
+              <QrCode className="w-8 h-8 text-orange-600" />
+            </div>
+            <div className="mt-4 flex items-center text-sm text-green-600">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              +23% bu ay
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Additional Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  AI Etkileşimleri
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.aiInteractions.toLocaleString()}
+                </p>
+              </div>
+              <Bot className="w-8 h-8 text-indigo-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Aktif Kullanıcılar
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.activeUsers}
+                </p>
+              </div>
+              <Activity className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Depolama Kullanımı
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.storageUsed} GB
+                </p>
+                <p className="text-sm text-gray-500">
+                  / {stats.storageLimit} GB
+                </p>
+              </div>
+              <Shield className="w-8 h-8 text-blue-600" />
+            </div>
+            <div className="mt-4">
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full" 
+                  style={{ width: `${(stats.storageUsed / stats.storageLimit) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Clock className="w-5 h-5 text-gray-600" />
+            <span>Son Aktiviteler</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentActivity.map((activity) => (
+              <div key={activity.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
+                <div className={`p-2 rounded-full ${getStatusColor(activity.status)}`}>
+                  {getActivityIcon(activity.type)}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {activity.description}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {activity.user} • {new Date(activity.timestamp).toLocaleString('tr-TR')}
+                  </p>
+                </div>
+                <div className={`px-2 py-1 rounded-full text-xs ${
+                  activity.status === 'success' ? 'bg-green-100 text-green-800' :
+                  activity.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {activity.status === 'success' ? 'Başarılı' :
+                   activity.status === 'warning' ? 'Uyarı' : 'Hata'}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Hızlı İşlemler</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <FileText className="w-6 h-6" />
+              <span>Yeni Talimat</span>
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Users className="w-6 h-6" />
+              <span>Kullanıcı Ekle</span>
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <QrCode className="w-6 h-6" />
+              <span>QR Kod Oluştur</span>
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Bot className="w-6 h-6" />
+              <span>AI Asistan</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

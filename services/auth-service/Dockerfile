@@ -1,4 +1,4 @@
-FROM denoland/deno:1.35-alpine
+FROM denoland/deno:latest
 
 # Set working directory
 WORKDIR /app
@@ -26,11 +26,11 @@ RUN chown -R deno:deno /app
 USER deno
 
 # Expose port
-EXPOSE 8001
+EXPOSE 8004
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD deno run --allow-net https://deno.land/x/healthcheck@v1.0.0/healthcheck.ts http://localhost:8001/health
+  CMD deno run --allow-net https://deno.land/x/healthcheck@v1.0.0/healthcheck.ts http://localhost:8004/health
 
 # Run the application
 CMD ["./claude-auth"]

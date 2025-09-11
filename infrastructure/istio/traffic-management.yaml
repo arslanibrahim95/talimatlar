@@ -1,0 +1,100 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: claude-auth-traffic
+  namespace: default
+spec:
+  hosts:
+  - claude-auth
+  http:
+  - match:
+    - headers:
+        user-agent:
+          regex: ".*Mobile.*"
+    route:
+    - destination:
+        host: claude-auth
+        subset: mobile
+      weight: 100
+  - route:
+    - destination:
+        host: claude-auth
+        subset: web
+      weight: 100
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: claude-auth-subsets
+  namespace: default
+spec:
+  host: claude-auth
+  subsets:
+  - name: web
+    labels:
+      version: web
+  - name: mobile
+    labels:
+      version: mobile
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: claude-analytics-traffic
+  namespace: default
+spec:
+  hosts:
+  - claude-analytics
+  http:
+  - route:
+    - destination:
+        host: claude-analytics
+      weight: 100
+  fault:
+    delay:
+      percentage:
+        value: 0.1
+      fixedDelay: 5s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: claude-ai-canary
+  namespace: default
+spec:
+  hosts:
+  - claude-ai
+  http:
+  - match:
+    - headers:
+        canary:
+          exact: "true"
+    route:
+    - destination:
+        host: claude-ai
+        subset: v2
+      weight: 100
+  - route:
+    - destination:
+        host: claude-ai
+        subset: v1
+      weight: 90
+    - destination:
+        host: claude-ai
+        subset: v2
+      weight: 10
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: claude-ai-subsets
+  namespace: default
+spec:
+  host: claude-ai
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2

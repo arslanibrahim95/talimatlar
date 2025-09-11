@@ -1,0 +1,59 @@
+# =============================================================================
+# DOCKER COMPOSE OVERRIDE FOR DEVELOPMENT OPTIMIZATION
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # Override for development with hot reload
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_HMR_PORT=3000
+    command: npm run dev -- --host 0.0.0.0
+
+  # Override for AI Service with development settings
+  ai-service:
+    environment:
+      - NODE_ENV=development
+      - DEBUG=true
+      - LOG_LEVEL=debug
+    volumes:
+      - ./ai-service:/app
+      - /app/__pycache__
+
+  # Override for Instruction Service with development settings
+  instruction-service:
+    environment:
+      - NODE_ENV=development
+      - DEBUG=true
+      - LOG_LEVEL=debug
+    volumes:
+      - ./instruction-service:/app
+      - /app/__pycache__
+
+  # Override for PostgreSQL with development settings
+  postgres:
+    environment:
+      - POSTGRES_LOG_STATEMENT=all
+      - POSTGRES_LOG_MIN_DURATION_STATEMENT=1000
+    command: >
+      postgres
+      -c log_statement=all
+      -c log_min_duration_statement=1000
+      -c log_line_prefix='%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+
+  # Override for Redis with development settings
+  redis:
+    command: >
+      redis-server
+      --appendonly yes
+      --loglevel debug
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru

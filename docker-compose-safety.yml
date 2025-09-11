@@ -1,0 +1,395 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: claude-postgres
+    environment:
+      POSTGRES_DB: safety_production
+      POSTGRES_USER: safety_admin
+      POSTGRES_PASSWORD: strong_password_here
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./infrastructure/postgresql/safety_schemas.sql:/docker-entrypoint-initdb.d/safety_schemas.sql
+      - ./infrastructure/postgresql/update_existing_tables.sql:/docker-entrypoint-initdb.d/update_existing_tables.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U safety_admin -d safety_production"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7.2-alpine
+    container_name: claude-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Auth Service (Deno)
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: claude-auth
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your_jwt_secret_here
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Document Service (Python)
+  document-service:
+    build:
+      context: ./services/document-service
+      dockerfile: Dockerfile
+    container_name: claude-document
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Analytics Service (Python)
+  analytics-service:
+    build:
+      context: ./services/analytics-service
+      dockerfile: Dockerfile
+    container_name: claude-analytics
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Notification Service (Go)
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: claude-notification
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Instruction Service (Python)
+  instruction-service:
+    build:
+      context: ./services/instruction-service
+      dockerfile: Dockerfile
+    container_name: claude-instruction
+    ports:
+      - "8004:8001"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Personnel Service (Python)
+  personnel-service:
+    build:
+      context: ./services/personnel-service
+      dockerfile: Dockerfile
+    container_name: claude-personnel
+    ports:
+      - "8005:8002"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Training Service (Python)
+  training-service:
+    build:
+      context: ./services/training-service
+      dockerfile: Dockerfile
+    container_name: claude-training
+    ports:
+      - "8006:8003"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Incidents Service (Python)
+  incidents-service:
+    build:
+      context: ./services/incidents-service
+      dockerfile: Dockerfile
+    container_name: claude-incidents
+    ports:
+      - "8007:8004"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Compliance Service (Python)
+  compliance-service:
+    build:
+      context: ./services/compliance-service
+      dockerfile: Dockerfile
+    container_name: claude-compliance
+    ports:
+      - "8008:8005"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Risk Service (Python)
+  risk-service:
+    build:
+      context: ./services/risk-service
+      dockerfile: Dockerfile
+    container_name: claude-risk
+    ports:
+      - "8009:8006"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # QR Service (Python)
+  qr-service:
+    build:
+      context: ./services/qr-service
+      dockerfile: Dockerfile
+    container_name: claude-qr
+    ports:
+      - "8010:8007"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # KPI Service (Python)
+  kpi-service:
+    build:
+      context: ./services/kpi-service
+      dockerfile: Dockerfile
+    container_name: claude-kpi
+    ports:
+      - "8011:8008"
+    environment:
+      - DATABASE_URL=postgresql://safety_admin:strong_password_here@postgres:5432/safety_production
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: claude-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_AUTH_URL=http://localhost:8000
+      - REACT_APP_DOCUMENT_URL=http://localhost:8001
+      - REACT_APP_ANALYTICS_URL=http://localhost:8002
+      - REACT_APP_NOTIFICATION_URL=http://localhost:8003
+      - REACT_APP_INSTRUCTION_URL=http://localhost:8004
+      - REACT_APP_PERSONNEL_URL=http://localhost:8005
+      - REACT_APP_TRAINING_URL=http://localhost:8006
+      - REACT_APP_INCIDENTS_URL=http://localhost:8007
+      - REACT_APP_COMPLIANCE_URL=http://localhost:8008
+      - REACT_APP_RISK_URL=http://localhost:8009
+      - REACT_APP_QR_URL=http://localhost:8010
+      - REACT_APP_KPI_URL=http://localhost:8011
+    depends_on:
+      - auth-service
+      - document-service
+      - analytics-service
+      - notification-service
+      - instruction-service
+      - personnel-service
+      - training-service
+      - incidents-service
+      - compliance-service
+      - risk-service
+      - qr-service
+      - kpi-service
+    networks:
+      - claude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  claude-network:
+    driver: bridge
+

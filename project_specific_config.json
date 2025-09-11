@@ -1,0 +1,272 @@
+{
+  "project_info": {
+    "name": "Claude Talimat İş Güvenliği Yönetim Sistemi",
+    "version": "1.0.0",
+    "description": "Modern, güvenli ve ölçeklenebilir iş güvenliği yönetim sistemi",
+    "target_platform": "Raspberry Pi 5",
+    "architecture": "microservices"
+  },
+  "technology_stack": {
+    "frontend": {
+      "framework": "React 18",
+      "language": "TypeScript",
+      "build_tool": "Vite",
+      "styling": "Tailwind CSS",
+      "ui_components": "Shadcn/ui",
+      "icons": "Lucide React",
+      "routing": "React Router"
+    },
+    "backend": {
+      "auth_service": {
+        "technology": "Deno",
+        "framework": "Oak",
+        "port": 8004,
+        "features": ["JWT", "OTP", "Role-based access"]
+      },
+      "analytics_service": {
+        "technology": "Python",
+        "framework": "FastAPI",
+        "port": 8003,
+        "features": ["Data analysis", "Reporting", "Dashboard"]
+      },
+      "instruction_service": {
+        "technology": "Deno",
+        "framework": "Oak",
+        "port": 8005,
+        "features": ["Instruction management", "QR codes", "Distribution"]
+      },
+      "ai_service": {
+        "technology": "Deno",
+        "framework": "Oak",
+        "port": 8006,
+        "features": ["OpenAI integration", "Claude API", "AI processing"]
+      }
+    },
+    "database": {
+      "primary": "PostgreSQL",
+      "cache": "Redis",
+      "ports": {
+        "postgres": 5433,
+        "redis": 6380
+      }
+    },
+    "infrastructure": {
+      "containerization": "Docker",
+      "orchestration": "Docker Compose",
+      "reverse_proxy": "Nginx",
+      "monitoring": "Health checks"
+    }
+  },
+  "development_workflow": {
+    "parallel_development": true,
+    "service_isolation": true,
+    "health_checks": true,
+    "hot_reload": true,
+    "environment_management": {
+      "development": "Local development",
+      "staging": "Test environment",
+      "production": "Raspberry Pi 5"
+    }
+  },
+  "code_standards": {
+    "frontend": {
+      "typescript_strict": true,
+      "component_structure": "Functional components with hooks",
+      "styling_approach": "Tailwind CSS utility classes",
+      "state_management": "React hooks + Context API",
+      "error_handling": "Error boundaries + try-catch",
+      "testing": "Jest + React Testing Library"
+    },
+    "backend": {
+      "deno_services": {
+        "import_map": true,
+        "permissions": "Explicit permissions",
+        "error_handling": "Oak error middleware",
+        "validation": "Zod schemas",
+        "testing": "Deno test runner"
+      },
+      "python_services": {
+        "type_hints": true,
+        "pydantic_models": true,
+        "async_await": true,
+        "error_handling": "FastAPI exception handlers",
+        "testing": "pytest + httpx"
+      }
+    }
+  },
+  "api_standards": {
+    "restful_design": true,
+    "versioning": "URL versioning (/api/v1/)",
+    "authentication": "JWT Bearer tokens",
+    "authorization": "Role-based access control",
+    "validation": "Request/response validation",
+    "documentation": "OpenAPI/Swagger",
+    "error_responses": "Standardized error format",
+    "pagination": "Cursor-based pagination",
+    "rate_limiting": "Per-user rate limiting"
+  },
+  "database_standards": {
+    "postgresql": {
+      "connection_pooling": true,
+      "migrations": "Version-controlled migrations",
+      "indexing": "Performance-optimized indexes",
+      "backup_strategy": "Daily automated backups",
+      "monitoring": "Query performance monitoring"
+    },
+    "redis": {
+      "session_storage": true,
+      "caching_strategy": "Multi-level caching",
+      "expiration_policies": "TTL-based expiration",
+      "monitoring": "Memory usage monitoring"
+    }
+  },
+  "security_standards": {
+    "authentication": {
+      "jwt_tokens": true,
+      "otp_verification": true,
+      "password_hashing": "bcrypt",
+      "session_management": "Redis-based sessions"
+    },
+    "authorization": {
+      "role_based_access": true,
+      "permission_system": "Granular permissions",
+      "api_protection": "Middleware-based protection"
+    },
+    "data_protection": {
+      "input_validation": true,
+      "sql_injection_prevention": true,
+      "xss_protection": true,
+      "csrf_protection": true,
+      "data_encryption": "At-rest and in-transit"
+    }
+  },
+  "performance_standards": {
+    "response_times": {
+      "frontend": "< 100ms",
+      "api_endpoints": "< 200ms",
+      "database_queries": "< 50ms",
+      "cache_operations": "< 10ms"
+    },
+    "scalability": {
+      "horizontal_scaling": true,
+      "load_balancing": "Nginx load balancer",
+      "database_optimization": "Query optimization",
+      "caching_strategies": "Multi-level caching"
+    },
+    "monitoring": {
+      "health_checks": true,
+      "performance_metrics": true,
+      "error_tracking": true,
+      "log_aggregation": true
+    }
+  },
+  "testing_strategy": {
+    "unit_tests": {
+      "frontend": "Jest + React Testing Library",
+      "backend": "Deno test + pytest",
+      "coverage_threshold": "80%"
+    },
+    "integration_tests": {
+      "api_testing": "httpx + pytest",
+      "database_testing": "Test database",
+      "service_communication": "Mock services"
+    },
+    "e2e_tests": {
+      "user_scenarios": "Playwright",
+      "cross_browser": "Chrome, Firefox, Safari",
+      "mobile_testing": "Responsive design"
+    },
+    "performance_tests": {
+      "load_testing": "Artillery",
+      "stress_testing": "High load scenarios",
+      "memory_testing": "Memory leak detection"
+    }
+  },
+  "deployment_strategy": {
+    "containerization": {
+      "docker_images": "Multi-stage builds",
+      "docker_compose": "Service orchestration",
+      "health_checks": "Container health monitoring"
+    },
+    "environment_management": {
+      "development": "Local Docker Compose",
+      "staging": "Test environment",
+      "production": "Raspberry Pi 5 deployment"
+    },
+    "ci_cd": {
+      "automated_testing": "GitHub Actions",
+      "automated_deployment": "Docker-based deployment",
+      "rollback_strategy": "Version-based rollback"
+    }
+  },
+  "monitoring_and_logging": {
+    "health_monitoring": {
+      "service_health": "HTTP health endpoints",
+      "database_health": "Connection monitoring",
+      "cache_health": "Redis monitoring"
+    },
+    "performance_monitoring": {
+      "response_times": "API response tracking",
+      "throughput": "Requests per second",
+      "error_rates": "Error percentage tracking"
+    },
+    "logging": {
+      "structured_logging": "JSON format",
+      "log_levels": "DEBUG, INFO, WARN, ERROR",
+      "log_aggregation": "Centralized logging"
+    }
+  },
+  "ai_assistant_rules": {
+    "project_specific": {
+      "understand_microservices": true,
+      "respect_service_boundaries": true,
+      "use_docker_workflow": true,
+      "follow_api_standards": true,
+      "implement_health_checks": true,
+      "optimize_for_raspberry_pi": true
+    },
+    "development_guidelines": {
+      "parallel_service_development": true,
+      "container_first_approach": true,
+      "health_check_implementation": true,
+      "error_handling_standards": true,
+      "performance_optimization": true,
+      "security_best_practices": true
+    },
+    "testing_requirements": {
+      "unit_test_coverage": "80%",
+      "integration_testing": true,
+      "e2e_testing": true,
+      "performance_testing": true,
+      "security_testing": true
+    }
+  },
+  "quick_reference": {
+    "service_ports": {
+      "frontend": 3000,
+      "auth_service": 8004,
+      "analytics_service": 8003,
+      "instruction_service": 8005,
+      "ai_service": 8006,
+      "postgres": 5433,
+      "redis": 6380,
+      "nginx": 8080
+    },
+    "common_commands": {
+      "start_services": "docker compose up -d",
+      "stop_services": "docker compose down",
+      "view_logs": "docker compose logs -f",
+      "check_health": "curl http://localhost:8004/health",
+      "run_tests": "npm run test:all",
+      "build_frontend": "cd frontend && npm run build"
+    },
+    "development_workflow": {
+      "1": "Start infrastructure (postgres, redis)",
+      "2": "Start backend services",
+      "3": "Start frontend",
+      "4": "Run tests",
+      "5": "Deploy to staging",
+      "6": "Deploy to production"
+    }
+  }
+}

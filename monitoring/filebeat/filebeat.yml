@@ -1,0 +1,44 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/claude-talimat/*.log
+  fields:
+    service: claude-talimat
+    environment: production
+  fields_under_root: true
+  multiline.pattern: '^\d{4}-\d{2}-\d{2}'
+  multiline.negate: true
+  multiline.match: after
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/nginx/*.log
+  fields:
+    service: nginx
+    environment: production
+  fields_under_root: true
+
+- type: container
+  enabled: true
+  paths:
+    - '/var/lib/docker/containers/*/*.log'
+  processors:
+    - add_docker_metadata:
+        host: "unix:///var/run/docker.sock"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "claude-talimat-logs-%{+yyyy.MM.dd}"
+
+setup.kibana:
+  host: "kibana:5601"
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded

@@ -1,0 +1,296 @@
+# Comprehensive Caching Configuration
+# This file defines caching strategies for all layers of the application
+
+# Frontend Caching Configuration
+frontend:
+  # Browser Cache Headers
+  browser_cache:
+    static_assets:
+      ttl: 31536000  # 1 year
+      headers:
+        - "Cache-Control: public, immutable"
+        - "Vary: Accept-Encoding"
+    
+    html_files:
+      ttl: 3600  # 1 hour
+      headers:
+        - "Cache-Control: public, must-revalidate"
+        - "Vary: Accept-Encoding"
+    
+    api_responses:
+      ttl: 300  # 5 minutes
+      headers:
+        - "Cache-Control: public, max-age=300"
+        - "Vary: Accept, Accept-Encoding"
+
+  # Service Worker Caching
+  service_worker:
+    strategies:
+      static_assets: "cache-first"
+      api_responses: "network-first"
+      images: "cache-first"
+      dynamic_content: "stale-while-revalidate"
+    
+    cache_versions:
+      static: "v2"
+      dynamic: "v2"
+      api: "v2"
+      images: "v2"
+
+  # Memory Caching
+  memory_cache:
+    api_cache:
+      ttl: 300000  # 5 minutes
+      max_size: 100
+      strategy: "memory"
+    
+    user_data_cache:
+      ttl: 900000  # 15 minutes
+      max_size: 50
+      strategy: "localStorage"
+    
+    session_cache:
+      ttl: 1800000  # 30 minutes
+      max_size: 20
+      strategy: "sessionStorage"
+
+# Backend Caching Configuration
+backend:
+  # Redis Configuration
+  redis:
+    host: "localhost"
+    port: 6379
+    password: null
+    db: 0
+    key_prefix: "talimatlar:"
+    default_ttl: 300  # 5 minutes
+    
+    # Connection pool
+    max_connections: 100
+    connection_timeout: 5000
+    command_timeout: 5000
+
+  # Application Level Caching
+  application_cache:
+    chat_sessions:
+      ttl: 300  # 5 minutes
+      max_size: 1000
+      key_prefix: "chat:"
+    
+    commands:
+      ttl: 600  # 10 minutes
+      max_size: 500
+      key_prefix: "command:"
+    
+    user_data:
+      ttl: 1800  # 30 minutes
+      max_size: 100
+      key_prefix: "user:"
+    
+    sessions:
+      ttl: 3600  # 1 hour
+      max_size: 200
+      key_prefix: "session:"
+
+  # API Response Caching
+  api_cache:
+    auth_endpoints:
+      ttl: 300  # 5 minutes
+      methods: ["GET"]
+    
+    document_endpoints:
+      ttl: 300  # 5 minutes
+      methods: ["GET"]
+    
+    analytics_endpoints:
+      ttl: 600  # 10 minutes
+      methods: ["GET"]
+    
+    instruction_endpoints:
+      ttl: 300  # 5 minutes
+      methods: ["GET"]
+
+# Database Caching Configuration
+database:
+  # Query Result Caching
+  query_cache:
+    user_queries:
+      ttl: 600  # 10 minutes
+      prefix: "user"
+    
+    document_queries:
+      ttl: 300  # 5 minutes
+      prefix: "doc"
+    
+    search_queries:
+      ttl: 180  # 3 minutes
+      prefix: "search"
+    
+    analytics_queries:
+      ttl: 900  # 15 minutes
+      prefix: "analytics"
+    
+    static_queries:
+      ttl: 3600  # 1 hour
+      prefix: "static"
+
+  # Connection Pooling
+  connection_pool:
+    min_connections: 5
+    max_connections: 50
+    connection_timeout: 30
+    idle_timeout: 600
+
+# CDN and Static Asset Caching
+cdn:
+  # Static Assets
+  static_assets:
+    js_files:
+      ttl: 31536000  # 1 year
+      headers:
+        - "Cache-Control: public, immutable"
+        - "Content-Encoding: gzip"
+    
+    css_files:
+      ttl: 31536000  # 1 year
+      headers:
+        - "Cache-Control: public, immutable"
+        - "Content-Encoding: gzip"
+    
+    images:
+      ttl: 2592000  # 30 days
+      headers:
+        - "Cache-Control: public, max-age=2592000"
+    
+    fonts:
+      ttl: 31536000  # 1 year
+      headers:
+        - "Cache-Control: public, immutable"
+
+  # API Response Caching
+  api_responses:
+    public_endpoints:
+      ttl: 300  # 5 minutes
+      headers:
+        - "Cache-Control: public, max-age=300"
+    
+    private_endpoints:
+      ttl: 60  # 1 minute
+      headers:
+        - "Cache-Control: private, max-age=60"
+
+# Nginx Caching Configuration
+nginx:
+  # Proxy Cache
+  proxy_cache:
+    api_cache:
+      zone: "api_cache"
+      size: "10m"
+      max_size: "1g"
+      inactive: "60m"
+    
+    static_cache:
+      zone: "static_cache"
+      size: "10m"
+      max_size: "2g"
+      inactive: "7d"
+    
+    image_cache:
+      zone: "image_cache"
+      size: "10m"
+      max_size: "5g"
+      inactive: "30d"
+
+  # Cache Headers
+  cache_headers:
+    static_assets:
+      - "expires 1y"
+      - "add_header Cache-Control 'public, immutable'"
+    
+    api_responses:
+      - "add_header X-Cache-Status $upstream_cache_status"
+      - "add_header Cache-Control 'public, max-age=300'"
+
+# Cache Invalidation Strategies
+invalidation:
+  # Time-based Invalidation
+  time_based:
+    user_data: "15m"
+    document_data: "5m"
+    analytics_data: "10m"
+    static_data: "1h"
+
+  # Event-based Invalidation
+  event_based:
+    user_update: ["user_data", "user_sessions"]
+    document_update: ["document_data", "search_index"]
+    instruction_update: ["instruction_data", "search_index"]
+    analytics_update: ["analytics_data", "dashboard_data"]
+
+  # Pattern-based Invalidation
+  pattern_based:
+    user_pattern: "user:*"
+    document_pattern: "doc:*"
+    search_pattern: "search:*"
+    analytics_pattern: "analytics:*"
+
+# Cache Monitoring and Metrics
+monitoring:
+  # Metrics Collection
+  metrics:
+    hit_rate: true
+    miss_rate: true
+    eviction_rate: true
+    error_rate: true
+    response_time: true
+    cache_size: true
+
+  # Alerts
+  alerts:
+    hit_rate_threshold: 80  # Alert if hit rate below 80%
+    error_rate_threshold: 5  # Alert if error rate above 5%
+    cache_size_threshold: 90  # Alert if cache size above 90%
+
+  # Logging
+  logging:
+    level: "INFO"
+    format: "json"
+    include_metrics: true
+    include_errors: true
+
+# Cache Warming Strategies
+warming:
+  # Pre-population
+  pre_population:
+    common_queries: true
+    user_dashboards: true
+    static_data: true
+    analytics_reports: true
+
+  # Background Warming
+  background_warming:
+    enabled: true
+    interval: "5m"
+    batch_size: 100
+    priority: "low"
+
+# Performance Optimization
+performance:
+  # Compression
+  compression:
+    gzip: true
+    brotli: true
+    min_compression_size: 1024
+
+  # Lazy Loading
+  lazy_loading:
+    images: true
+    components: true
+    routes: true
+
+  # Preloading
+  preloading:
+    critical_css: true
+    critical_js: true
+    fonts: true
+    images: false
