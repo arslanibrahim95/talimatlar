@@ -1,6 +1,17 @@
 # 🏗️ Claude Talimat İş Güvenliği Yönetim Sistemi
 
+[![CI/CD Pipeline](https://github.com/arslanibrahim95/talimatlar/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/arslanibrahim95/talimatlar/actions)
+[![GitHub Pages](https://github.com/arslanibrahim95/talimatlar/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/arslanibrahim95/talimatlar/actions)
+[![Security](https://github.com/arslanibrahim95/talimatlar/workflows/Dependency%20Review/badge.svg)](https://github.com/arslanibrahim95/talimatlar/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-green.svg)](https://www.python.org/)
+[![Deno](https://img.shields.io/badge/Deno-1.35+-blue.svg)](https://deno.land/)
+
 Modern, güvenli ve ölçeklenebilir iş güvenliği yönetim sistemi. Raspberry Pi 5 üzerinde çalışacak şekilde optimize edilmiş mikroservis mimarisi.
+
+> **🚀 Live Demo**: [GitHub Pages](https://arslanibrahim95.github.io/talimatlar/) | **📖 Documentation**: [Wiki](https://github.com/arslanibrahim95/talimatlar/wiki)
 
 ## 🎯 Özellikler
 
@@ -162,11 +173,25 @@ npm run dev:all
 
 ## 🤝 Katkıda Bulunma
 
+Katkılarınızı bekliyoruz! Lütfen [Contributing Guidelines](CONTRIBUTING.md) dosyasını okuyun.
+
+### Hızlı Başlangıç
 1. Fork yapın
 2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
 3. Commit yapın (`git commit -m 'Add amazing feature'`)
 4. Push yapın (`git push origin feature/amazing-feature`)
 5. Pull Request açın
+
+### Katkı Türleri
+- 🐛 Bug fixes
+- ✨ New features
+- 📚 Documentation improvements
+- 🧪 Test coverage
+- 🔧 Performance optimizations
+- 🔒 Security enhancements
+
+### Code of Conduct
+Bu proje [Contributor Covenant](CODE_OF_CONDUCT.md) kurallarına uyar.
 
 ## 📄 Lisans
 
@@ -176,7 +201,28 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 
 - **Email**: ibrahim1995412@gmail.com
 - **GitHub Issues**: [Proje Issues](https://github.com/arslanibrahim95/talimatlar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/arslanibrahim95/talimatlar/discussions)
+- **Security**: [Security Policy](SECURITY.md)
+
+## 📊 Proje İstatistikleri
+
+![GitHub stars](https://img.shields.io/github/stars/arslanibrahim95/talimatlar?style=social)
+![GitHub forks](https://img.shields.io/github/forks/arslanibrahim95/talimatlar?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/arslanibrahim95/talimatlar?style=social)
+![GitHub last commit](https://img.shields.io/github/last-commit/arslanibrahim95/talimatlar)
+![GitHub issues](https://img.shields.io/github/issues/arslanibrahim95/talimatlar)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/arslanibrahim95/talimatlar)
+
+## 🏆 Teşekkürler
+
+Bu projeye katkıda bulunan herkese teşekkürler!
+
+[![Contributors](https://contrib.rocks/image?repo=arslanibrahim95/talimatlar)](https://github.com/arslanibrahim95/talimatlar/graphs/contributors)
 
 ---
 
 **Built with ❤️ for workplace safety**
+
+[![GitHub](https://img.shields.io/badge/GitHub-arslanibrahim95-black?style=flat&logo=github)](https://github.com/arslanibrahim95)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-ibrahim--arslan-blue?style=flat&logo=linkedin)](https://linkedin.com/in/ibrahim-arslan)
+[![Twitter](https://img.shields.io/badge/Twitter-@arslanibrahim95-blue?style=flat&logo=twitter)](https://twitter.com/arslanibrahim95)

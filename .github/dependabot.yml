@@ -1,0 +1,129 @@
+version: 2
+updates:
+  # Frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "arslanibrahim95"
+    assignees:
+      - "arslanibrahim95"
+    commit-message:
+      prefix: "chore(frontend)"
+      include: "scope"
+
+  # Root package.json
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "arslanibrahim95"
+    assignees:
+      - "arslanibrahim95"
+    commit-message:
+      prefix: "chore(root)"
+      include: "scope"
+
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/services"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "arslanibrahim95"
+    assignees:
+      - "arslanibrahim95"
+    commit-message:
+      prefix: "chore(backend)"
+      include: "scope"
+
+  # Database layer Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/database-layer"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "arslanibrahim95"
+    assignees:
+      - "arslanibrahim95"
+    commit-message:
+      prefix: "chore(database)"
+      include: "scope"
+
+  # AI service Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/ai-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "arslanibrahim95"
+    assignees:
+      - "arslanibrahim95"
+    commit-message:
+      prefix: "chore(ai-service)"
+      include: "scope"
+
+  # Go dependencies
+  - package-ecosystem: "gomod"
+    directory: "/services"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "arslanibrahim95"
+    assignees:
+      - "arslanibrahim95"
+    commit-message:
+      prefix: "chore(go)"
+      include: "scope"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "arslanibrahim95"
+    assignees:
+      - "arslanibrahim95"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "arslanibrahim95"
+    assignees:
+      - "arslanibrahim95"
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"

@@ -1,0 +1,45 @@
+# Global owners
+* @arslanibrahim95
+
+# Frontend
+/frontend/ @arslanibrahim95
+
+# Backend services
+/services/ @arslanibrahim95
+/ai-service/ @arslanibrahim95
+/api-gateway/ @arslanibrahim95
+/instruction-service/ @arslanibrahim95
+
+# Database layer
+/database-layer/ @arslanibrahim95
+
+# Infrastructure
+/infrastructure/ @arslanibrahim95
+/docker-compose*.yml @arslanibrahim95
+/Dockerfile* @arslanibrahim95
+
+# Security
+/security/ @arslanibrahim95
+/security-middleware/ @arslanibrahim95
+SECURITY.md @arslanibrahim95
+
+# Documentation
+/docs/ @arslanibrahim95
+*.md @arslanibrahim95
+
+# Configuration files
+*.json @arslanibrahim95
+*.yml @arslanibrahim95
+*.yaml @arslanibrahim95
+*.env* @arslanibrahim95
+
+# Scripts
+/scripts/ @arslanibrahim95
+Makefile* @arslanibrahim95
+
+# Tests
+/tests/ @arslanibrahim95
+/e2e-tests/ @arslanibrahim95
+
+# Monitoring
+/monitoring/ @arslanibrahim95
